@@ -36,7 +36,8 @@ class DictGenerator(object):
                     'get':      line[45:49].strip()=='X',
                     'set':      line[49:53].strip()=='X',
                     'step':     line[53:58].strip()=='X',
-                    'comment':  line[58:].strip()
+                    'comment':  line[58:].strip(),
+                    'property': True,
                 }
             else:
                 command = prop_dict['command']
