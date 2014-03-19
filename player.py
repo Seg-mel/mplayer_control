@@ -9,17 +9,29 @@ from functools import partial
 from player_property import property_dict
 from player_cmdlist import cmdlist_dict
 
-FIFO = u'/tmp/segmplayer_fifo'
-AUDIO_OUTPUT = u'alsa'
-COMMAND = u'mplayer -ao %s -slave -quiet -idle -input file=%s'
-STDOUT = u'/tmp/segmplayer_stdout'
-CMDLIST_COMMAND = 'mplayer -input cmdlist'
+if 'win' in sys.platform:
+    PIPE = '/Windows/Temp/segmplayer.fifo'
+    STDOUT = '/Windows/Temp/segmplayer.stdout'
+    # AUDIO_OUTPUT = ''
+    COMMAND = '/mplayer/mplayer.exe -ao %s -slave -quiet -idle -input file=%s'
+elif 'unix' in sys.patform:
+    PIPE = '/tmp/segmplayer.fifo'
+    STDOUT = '/tmp/segmplayer.stdout'
+    # AUDIO_OUTPUT = 'alsa'
+    COMMAND = 'mplayer -ao %s -slave -quiet -idle -input file=%s'
 
 
 
+class Properties(object):
+    ''' 
+    MPlayer properties class. 
+    ~~~~~~~~~~~~~~~~~~~~~~~~
 
-class Player(object):
-    ''' MPlayer control class '''
+    This class includes MPlayer properies.
+    The class is substitute two MPlayer commands (get_property, set_property)
+    plus property.
+    Example raw MPlayer query: get_property volume
+    '''
 
     def _getter(self, item):
         ## Getter for property
@@ -29,38 +41,28 @@ class Player(object):
         ## Getter for property
         print value
 
-    def __new__(cls):
+    def __new__(cls, *args, **kwargs):
         def _doc_creator(item):
-            ## Doc creator
-            if item['property'] is True:
-                ## Doc creator for property
-                if item['comment'] == '':
-                    doc_info = item['command']
-                else:
-                    doc_info  = item['comment']
-                if item['set'] is False:
-                    set_info = '\n(read-only property)'
-                else:
-                    set_info = ''
-                if item['min'] is False:
-                    min_info = ''
-                else:
-                    min_info = '\nmin:\t%s' % item['min']
-                if item['max'] is False:
-                    max_info = ''
-                else:
-                    max_info = '\nmax:\t%s' % item['max']
-                type_info = 'type:\t%s' % item['type']
-                doc  = '%s\n%s%s%s%s' % (doc_info, type_info, min_info, 
-                                               max_info, set_info)
+            ## Doc creator for property
+            if item['comment'] == '':
+                doc_info = item['command']
             else:
-                ## Doc creator for command
                 doc_info  = item['comment']
-                args_info = ''
-                for key in item.keys():
-                    if key == 'command': continue
-                    args_info += '\n%s: %s' % (key, item[key])
-                doc = '%s%s' % (doc_info, args_info)
+            if item['set'] is False:
+                set_info = '\n(read-only property)'
+            else:
+                set_info = ''
+            if item['min'] is False:
+                min_info = ''
+            else:
+                min_info = '\nmin:\t%s' % item['min']
+            if item['max'] is False:
+                max_info = ''
+            else:
+                max_info = '\nmax:\t%s' % item['max']
+            type_info = 'type:\t%s' % item['type']
+            doc  = '%s\n%s%s%s%s' % (doc_info, type_info, min_info, 
+                                                    max_info, set_info)
             return doc
 
         ## Create new class properties from mplayer property_dict
@@ -78,41 +80,79 @@ class Player(object):
                                           item=property_dict[item]),
                              doc=doc)
             setattr(cls, item, x)
+        return super(Properties, cls).__new__(cls)
+
+    def __init__(self, fifofile=None, stdout=None):
+        pass
+
+
+
+class Player(object):
+    '''
+    MPlayer control class.
+    ~~~~~~~~~~~~~~~~~~~~~
+
+    Commands 'get_property', 'set_property' and 'set_property_osd', 
+    which include into MPlayer cmdlist,
+    have been replaced on 'properties',
+    that is the properies class.
+    Example: 
+        Player().properties.volume
+        Player().properties.volume = 10
+    For getting more documetetion of properties you can use
+    the command 'help(Player().properies)'
+    '''
+
+    properties = Properties(fifofile=PIPE, stdout=STDOUT)
+
+    def _getter(self, item):
+        ## Getter for command
+        return item
+
+    def _setter(self, value):
+        ## Getter for command
+        print value
+
+    def __new__(cls, *args, **kwargs):
+        def _doc_creator(item):
+            ## Doc creator for command
+            doc_info  = item['comment']
+            args_info = ''
+            for key in item.keys():
+                if key == 'command': continue
+                if key == 'comment': continue
+                args_info += '\n%s: %s' % (key, item[key])
+            doc = '%s%s' % (doc_info, args_info)
+            return doc
+
+        ## Create new class properties from mplayer cmdlist_dict
+        for item in cmdlist_dict.keys():
+            if item == 'get_property': continue
+            if item == 'set_property': continue
+            if item == 'set_property_osd': continue
+            doc = _doc_creator(cmdlist_dict[item])
+            if 'get' not in item:
+                ## Create property with set capacity
+                x = property(fget=partial(cls._getter, 
+                                          item=cmdlist_dict[item]), 
+                             fset=cls._setter, 
+                             doc=doc)
+            else:
+                ## Create property without set capacity
+                x = property(fget=partial(cls._getter, 
+                                          item=cmdlist_dict[item]),
+                             doc=doc)
+            setattr(cls, item, x)
         return super(Player, cls).__new__(cls)
 
-    def __init__(self, fifo=FIFO, stdout=STDOUT):
-        self.fifo = fifo
-        self.stdout = stdout
-        if os.path.exists(fifo):
-            ## delete fifo file if existed it
-            os.unlink(fifo)
-        ## create fifo file
-        os.mkfifo(fifo)
-        ## set start flag
-        self.start_player = False
-
-    def run_player(self, output=AUDIO_OUTPUT, volume_control='master'):
-        """ Run and configure the player """
-        run_command = COMMAND % (output, self.fifo)
-        run_command_list = run_command.split()
-        self.progress_log_write = open(self.stdout,'w+b')
-        subprocess.Popen(run_command_list, 
-                         stdin=self.progress_log_write, 
-                         stdout=self.progress_log_write)
-        self.mplayer_client = open(self.fifo,'w')
-        self.progress_log = open(self.stdout,'r')
-        if volume_control=='master':
-            self.send_command('use_master\n')
-        else:
-            pass
-
-
+    def __init__(self):
+        pass
 
 
 
 if __name__=='__main__':
     player = Player()
-    # print help(player)
+    print help(player.properties)
     # #print len(dir(player))
     # print player.audio_bitrate
     # print player.stream_pos
