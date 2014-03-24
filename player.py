@@ -5,20 +5,36 @@ import os
 import sys
 import subprocess
 import time
+import pipes
 from functools import partial
+from types import FunctionType
 from player_property import property_dict
 from player_cmdlist import cmdlist_dict
 
 if 'win' in sys.platform:
-    PIPE = '/Windows/Temp/segmplayer.fifo'
-    STDOUT = '/Windows/Temp/segmplayer.stdout'
-    # AUDIO_OUTPUT = ''
-    COMMAND = '/mplayer/mplayer.exe -ao %s -slave -quiet -idle -input file=%s'
-elif 'unix' in sys.patform:
-    PIPE = '/tmp/segmplayer.fifo'
-    STDOUT = '/tmp/segmplayer.stdout'
-    # AUDIO_OUTPUT = 'alsa'
-    COMMAND = 'mplayer -ao %s -slave -quiet -idle -input file=%s'
+    PIPE_PATH = '/Users/meloman/Desktop/segmplayer.fifo'
+    STDOUT_PATH = '/Users/meloman/Desktop/segmplayer.stdout'
+    MPLAYER_PATH = '/mplayer/mplayer.exe'
+elif 'linux' in sys.platform:
+    PIPE_PATH = '/tmp/segmplayer.fifo'
+    STDOUT_PATH = '/tmp/segmplayer.stdout'
+    MPLAYER_PATH = 'mplayer'
+# COMMAND = MPLAYER_PATH + ' -ao %s -slave -quiet -idle -input file=%s'
+COMMAND = MPLAYER_PATH + ' -slave -quiet -idle -input file=%s'
+
+
+
+class CountValuesError(Exception):
+        ''' 
+        Exception class, when user passed more values 
+        than needed.
+        '''
+        def __init__(self, count):
+            self.count = count
+
+        def __str__(self):
+            string = 'Too many values. max=%s' % self.count
+            return string
 
 
 
@@ -40,6 +56,7 @@ class Properties(object):
     def _setter(self, value):
         ## Getter for property
         print value
+
 
     def __new__(cls, *args, **kwargs):
         def _doc_creator(item):
@@ -70,16 +87,16 @@ class Properties(object):
             doc = _doc_creator(property_dict[item])
             if property_dict[item]['set'] is True:
                 ## Create property with set capacity
-                x = property(fget=partial(cls._getter, 
+                prop = property(fget=partial(cls._getter, 
                                           item=property_dict[item]), 
                              fset=cls._setter, 
                              doc=doc)
             elif property_dict[item]['set'] is False:
                 ## Create property without set capacity
-                x = property(fget=partial(cls._getter, 
+                prop = property(fget=partial(cls._getter, 
                                           item=property_dict[item]),
                              doc=doc)
-            setattr(cls, item, x)
+            setattr(cls, item, prop)
         return super(Properties, cls).__new__(cls)
 
     def __init__(self, fifofile=None, stdout=None):
@@ -93,25 +110,41 @@ class Player(object):
     ~~~~~~~~~~~~~~~~~~~~~
 
     Commands 'get_property', 'set_property' and 'set_property_osd', 
-    which include into MPlayer cmdlist,
+    which included into MPlayer cmdlist,
     have been replaced on 'properties',
     that is the properies class.
     Example: 
         Player().properties.volume
         Player().properties.volume = 10
     For getting more documetetion of properties you can use
-    the command 'help(Player().properies)'
+    the command 'help(Player.properies)'
     '''
 
-    properties = Properties(fifofile=PIPE, stdout=STDOUT)
+    properties = Properties(fifofile=PIPE_PATH, stdout=STDOUT_PATH)
 
     def _getter(self, item):
         ## Getter for command
         return item
 
-    def _setter(self, value):
+    def _new_method(self, *values):
         ## Getter for command
-        print value
+        # For single value, because it is not a tuple
+        print item
+        if type(values) is not tuple:
+            values = (values,)
+        count_values = len(values)
+        count_args = len(item['types'])
+        if count_values <= count_args:
+            command_string = item['command']
+            for value in values:
+                
+                command_string += ' %s' % str(value)
+            command_string += '\n'
+            print command_string
+            # self._fifo.write(command_string)
+            # self._fifo.flush()
+        else:
+            raise CountValuesError(count=count_args)
 
     def __new__(cls, *args, **kwargs):
         def _doc_creator(item):
@@ -121,38 +154,59 @@ class Player(object):
             for key in item.keys():
                 if key == 'command': continue
                 if key == 'comment': continue
+                if key == 'property': continue
                 args_info += '\n%s: %s' % (key, item[key])
             doc = '%s%s' % (doc_info, args_info)
             return doc
 
-        ## Create new class properties from mplayer cmdlist_dict
+        ## Create new class methods from mplayer cmdlist_dict
         for item in cmdlist_dict.keys():
             if item == 'get_property': continue
             if item == 'set_property': continue
             if item == 'set_property_osd': continue
             doc = _doc_creator(cmdlist_dict[item])
             if 'get' not in item:
-                ## Create property with set capacity
-                x = property(fget=partial(cls._getter, 
-                                          item=cmdlist_dict[item]), 
-                             fset=cls._setter, 
-                             doc=doc)
+                # Create dict, what will include globals() without locals()
+                # and item data. Its need for sending to new method
+                method_dict = {'item': cmdlist_dict[item]}
+                for i in globals().keys():
+                    if i in locals().keys(): continue
+                    method_dict[i] = globals()[i]
+                # Creating function, adding doc, editing name
+                new_method = FunctionType(cls._new_method.func_code, 
+                                 method_dict,
+                                 item)
+                new_method.__doc__ = doc 
+                new_method.__name__ = item
             else:
-                ## Create property without set capacity
-                x = property(fget=partial(cls._getter, 
+                ## Create methods without set capacity
+                new_method = property(fget=partial(cls._getter, 
                                           item=cmdlist_dict[item]),
                              doc=doc)
-            setattr(cls, item, x)
+            setattr(cls, item, new_method)
         return super(Player, cls).__new__(cls)
 
     def __init__(self):
-        pass
+        _fifo_template = pipes.Template()
+        _fifo_open = _fifo_template.open(PIPE_PATH, 'w')
+        self._stdout = open(STDOUT_PATH, 'w')
+        command = (COMMAND % PIPE_PATH).split()
+        subprocess.Popen(command, stdout=self._stdout)
+        self._fifo = open(PIPE_PATH, 'w')
+        # load_file_command = "loadfile '%s' 1\n" % ("/Users/meloman/Dropbox/music/my/7class.mp3")
+        # load_file_command = "loadfile '%s'\n" % ("/home/meloman/data/tmp/audiotest/3_Door_Down_-_Here_Without_You.mp3") 
+        # print load_file_command
+        # self._fifo = open(PIPE_PATH, 'w')
+        # self._fifo.write(load_file_command)
+        # self._fifo.flush()
+
 
 
 
 if __name__=='__main__':
     player = Player()
-    print help(player.properties)
+    player.loadfile(1,"/home/meloman/data/tmp/audiotest/3_Door_Down_-_Here_Without_You.mp3")
+    # print help(player)
     # #print len(dir(player))
     # print player.audio_bitrate
     # print player.stream_pos

@@ -22,11 +22,20 @@ class DictGenerator(object):
             line_dict['comment'] = line[0:-1]
             list_line = line.split()
             line_dict['command'] = list_line[0]
+            arguments_type = []
             for num, item in enumerate(list_line):
                 if num == 0: continue
-                if '[' in item:
-                    item = item[1:-1]
-                line_dict['arg%d'%num] = item
+                # if '[' in item:
+                #     item = item[1:-1]
+                # line_dict['arg%d'%num] = item
+                if 'Integer' in item:
+                    type_string = 'int'
+                elif 'String' in item:
+                    type_string = 'str'
+                elif 'Float' in item:
+                    type_string = 'float'
+                arguments_type.append(type_string)
+            line_dict['types'] = arguments_type
             cmds_dict[list_line[0]] = line_dict
         print cmds_dict
         return cmds_dict
