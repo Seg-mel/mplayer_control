@@ -126,24 +126,44 @@ class Player(object):
         ## Getter for command
         return item
 
-    def _new_method(self, *values):
+    def _mew_get_method(self):
+        pass
+
+    def _new_simple_method(self):
+        pass
+
+    def _new_values_method(self, *values):
         ## Getter for command
         # For single value, because it is not a tuple
-        print item
         if type(values) is not tuple:
             values = (values,)
         count_values = len(values)
         count_args = len(item['types'])
+        # Test count input values
         if count_values <= count_args:
             command_string = item['command']
-            for value in values:
-                
+            # Append command string
+            for num, value in enumerate(values):
+                # Test on type
+                basic_type = item['types'][num]
+                gotten_type = str(type(value))
+                print basic_type, gotten_type
+                if basic_type not in gotten_type:
+                    # Permit for setting integer value in float value
+                    if (basic_type == 'float') and ('int' in gotten_type):
+                        pass
+                    else:
+                        self._fifo.write('quit\n')
+                        self._fifo.flush()
+                        raise TypeError
                 command_string += ' %s' % str(value)
             command_string += '\n'
             print command_string
-            # self._fifo.write(command_string)
-            # self._fifo.flush()
+            self._fifo.write(command_string)
+            self._fifo.flush()
         else:
+            self._fifo.write('quit\n')
+            self._fifo.flush()
             raise CountValuesError(count=count_args)
 
     def __new__(cls, *args, **kwargs):
@@ -173,22 +193,22 @@ class Player(object):
                     if i in locals().keys(): continue
                     method_dict[i] = globals()[i]
                 # Creating function, adding doc, editing name
-                new_method = FunctionType(cls._new_method.func_code, 
-                                 method_dict,
-                                 item)
+                new_method = FunctionType(cls._new_values_method.func_code, 
+                                          method_dict,
+                                          item)
                 new_method.__doc__ = doc 
                 new_method.__name__ = item
             else:
                 ## Create methods without set capacity
                 new_method = property(fget=partial(cls._getter, 
-                                          item=cmdlist_dict[item]),
-                             doc=doc)
+                                      item=cmdlist_dict[item]),
+                                      doc=doc)
             setattr(cls, item, new_method)
         return super(Player, cls).__new__(cls)
 
     def __init__(self):
-        _fifo_template = pipes.Template()
-        _fifo_open = _fifo_template.open(PIPE_PATH, 'w')
+        fifo_template = pipes.Template()
+        fifo_open = fifo_template.open(PIPE_PATH, 'w')
         self._stdout = open(STDOUT_PATH, 'w')
         command = (COMMAND % PIPE_PATH).split()
         subprocess.Popen(command, stdout=self._stdout)
@@ -205,10 +225,7 @@ class Player(object):
 
 if __name__=='__main__':
     player = Player()
-    player.loadfile(1,"/home/meloman/data/tmp/audiotest/3_Door_Down_-_Here_Without_You.mp3")
-    # print help(player)
-    # #print len(dir(player))
-    # print player.audio_bitrate
-    # print player.stream_pos
-    # player.stream_pos = 123
-    # print player.stream_pos
+    print help(player)
+    player.loadfile("/home/meloman/data/tmp/audiotest/3_Door_Down_-_Here_Without_You.mp3",1)
+    player.volume(0)
+    # print len(dir(player))
