@@ -122,15 +122,14 @@ class Player(object):
 
     properties = Properties(fifofile=PIPE_PATH, stdout=STDOUT_PATH)
 
-    def _getter(self, item):
-        ## Getter for command
-        return item
-
-    def _mew_get_method(self):
+    def _new_get_method(self):
         pass
 
     def _new_simple_method(self):
-        pass
+        command_string = '%s\n' % item['command']
+        print command_string
+        self._fifo.write(command_string)
+        self._fifo.flush()
 
     def _new_values_method(self, *values):
         ## Getter for command
@@ -185,24 +184,33 @@ class Player(object):
             if item == 'set_property': continue
             if item == 'set_property_osd': continue
             doc = _doc_creator(cmdlist_dict[item])
+            # Creating a dictionary that would include variables contained
+            # it item and globals() (excluding locals()). 
+            # This is necessary for passing it to a new method.
+            method_dict = {'item': cmdlist_dict[item]}
+            for i in globals().keys():
+                if i in locals().keys(): continue
+                method_dict[i] = globals()[i]
+            # Creating function
             if 'get' not in item:
-                # Create dict, what will include globals() without locals()
-                # and item data. Its need for sending to new method
-                method_dict = {'item': cmdlist_dict[item]}
-                for i in globals().keys():
-                    if i in locals().keys(): continue
-                    method_dict[i] = globals()[i]
-                # Creating function, adding doc, editing name
-                new_method = FunctionType(cls._new_values_method.func_code, 
+                if len(cmdlist_dict[item]['types']) != 0:
+                    # If the list of types containes types
+                    new_method = FunctionType(cls._new_values_method.func_code, 
+                                              method_dict,
+                                              item)
+                else:
+                    # If the list of types is empty
+                    new_method = FunctionType(cls._new_simple_method.func_code,
+                                              method_dict,
+                                              item)
+            else:
+                new_method = FunctionType(cls._new_get_method.func_code,
                                           method_dict,
                                           item)
-                new_method.__doc__ = doc 
-                new_method.__name__ = item
-            else:
-                ## Create methods without set capacity
-                new_method = property(fget=partial(cls._getter, 
-                                      item=cmdlist_dict[item]),
-                                      doc=doc)
+            # Adding doc, editing name
+            new_method.__doc__ = doc 
+            new_method.__name__ = item
+            # Adding function to this class as method
             setattr(cls, item, new_method)
         return super(Player, cls).__new__(cls)
 
@@ -226,6 +234,6 @@ class Player(object):
 if __name__=='__main__':
     player = Player()
     print help(player)
-    player.loadfile("/home/meloman/data/tmp/audiotest/3_Door_Down_-_Here_Without_You.mp3",1)
-    player.volume(0)
-    # print len(dir(player))
+    # player.loadfile("/home/meloman/data/tmp/audiotest/3_Door_Down_-_Here_Without_You.mp3",1)
+    # player.volume(0)
+    # player.use_master()
