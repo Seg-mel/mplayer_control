@@ -12,11 +12,11 @@ from player_property import property_dict
 from player_cmdlist import cmdlist_dict
 
 if 'win' in sys.platform:
-    PIPE_PATH = '/Users/meloman/Desktop/segmplayer.fifo'
+    FIFO_PATH = '/Users/meloman/Desktop/segmplayer.fifo'
     STDOUT_PATH = '/Users/meloman/Desktop/segmplayer.stdout'
     MPLAYER_PATH = '/mplayer/mplayer.exe'
 elif 'linux' in sys.platform:
-    PIPE_PATH = '/tmp/segmplayer.fifo'
+    FIFO_PATH = '/tmp/segmplayer.fifo'
     STDOUT_PATH = '/tmp/segmplayer.stdout'
     MPLAYER_PATH = 'mplayer'
 # COMMAND = MPLAYER_PATH + ' -ao %s -slave -quiet -idle -input file=%s'
@@ -120,16 +120,21 @@ class Player(object):
     the command 'help(Player.properies)'
     '''
 
-    properties = Properties(fifofile=PIPE_PATH, stdout=STDOUT_PATH)
+    properties = Properties(fifofile=FIFO_PATH, stdout=STDOUT_PATH)
 
     def _new_get_method(self):
-        pass
+        command_string = 'pausing_keep %s' % item['command']
+        self._send_command(command_string)
+        answer = ''
+        while '=' not in answer: 
+            answer = self._player_answer.readline()
+        print 'EXECUTED GET COMMAND:', item['command'], answer
+        return answer.split('=')[-1]
 
     def _new_simple_method(self):
-        command_string = '%s\n' % item['command']
-        print command_string
-        self._fifo.write(command_string)
-        self._fifo.flush()
+        command_string = '%s' % item['command']
+        print 'EXECUTED SIMPLE COMMAND:', command_string
+        self._send_command(command_string)
 
     def _new_values_method(self, *values):
         ## Getter for command
@@ -146,23 +151,23 @@ class Player(object):
                 # Test on type
                 basic_type = item['types'][num]
                 gotten_type = str(type(value))
-                print basic_type, gotten_type
+                print basic_type, gotten_type , value
                 if basic_type not in gotten_type:
                     # Permit for setting integer value in float value
                     if (basic_type == 'float') and ('int' in gotten_type):
                         pass
                     else:
-                        self._fifo.write('quit\n')
-                        self._fifo.flush()
+                        self._send_command('quit')
                         raise TypeError
                 command_string += ' %s' % str(value)
-            command_string += '\n'
-            print command_string
-            self._fifo.write(command_string)
-            self._fifo.flush()
+            print 'EXECUTED VALUES COMMAND:', command_string
+            self._send_command(command_string)
+            if item['command'] == 'loadfile':
+                # Sleep and readlines need for missing loadfile log
+                time.sleep(0.1)
+                self._player_answer.readlines()
         else:
-            self._fifo.write('quit\n')
-            self._fifo.flush()
+            self._send_command('quit')
             raise CountValuesError(count=count_args)
 
     def __new__(cls, *args, **kwargs):
@@ -215,25 +220,40 @@ class Player(object):
         return super(Player, cls).__new__(cls)
 
     def __init__(self):
-        fifo_template = pipes.Template()
-        fifo_open = fifo_template.open(PIPE_PATH, 'w')
-        self._stdout = open(STDOUT_PATH, 'w')
-        command = (COMMAND % PIPE_PATH).split()
-        subprocess.Popen(command, stdout=self._stdout)
-        self._fifo = open(PIPE_PATH, 'w')
-        # load_file_command = "loadfile '%s' 1\n" % ("/Users/meloman/Dropbox/music/my/7class.mp3")
-        # load_file_command = "loadfile '%s'\n" % ("/home/meloman/data/tmp/audiotest/3_Door_Down_-_Here_Without_You.mp3") 
-        # print load_file_command
-        # self._fifo = open(PIPE_PATH, 'w')
-        # self._fifo.write(load_file_command)
-        # self._fifo.flush()
+        # fifo_template = pipes.Template()
+        # if os.path.exists(FIFO_PATH):
+        #     os.remove(FIFO_PATH)
+        # fifo_open = fifo_template.open(FIFO_PATH, 'w')
 
+        # Only linux at this time...
+        if os.path.exists(FIFO_PATH):
+            os.unlink(FIFO_PATH)
+        os.mkfifo(FIFO_PATH) 
+        self._stdout = open(STDOUT_PATH, 'w+b')
+        command = (COMMAND % FIFO_PATH).split()
+        subprocess.Popen(command, stdout=self._stdout)
+        self._fifo = open(FIFO_PATH, 'w')
+        self._player_answer = open(STDOUT_PATH, 'r')
+
+    def _send_command(self, command):
+        command += '\n'
+        self._fifo.write(command)
+        self._fifo.flush()
 
 
 
 if __name__=='__main__':
     player = Player()
-    print help(player)
-    # player.loadfile("/home/meloman/data/tmp/audiotest/3_Door_Down_-_Here_Without_You.mp3",1)
-    # player.volume(0)
-    # player.use_master()
+    # print help(player)
+    player.loadfile("/home/meloman/data/tmp/audiotest/3_Door_Down_-_Here_Without_You.mp3",1)
+    player.volume(0)
+    player.use_master()
+    a = 1
+    while a==1:
+        time.sleep(1)
+        print '~'*79
+        print player.get_percent_pos()
+        print player.get_time_pos()
+        print player.get_time_length()
+        print player.get_file_name()
+        print player.get_meta_title()
