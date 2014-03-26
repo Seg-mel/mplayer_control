@@ -120,7 +120,7 @@ class Player(object):
     the command 'help(Player.properies)'
     '''
 
-    properties = Properties()
+    properties = Properties
 
     def _new_get_method(self):
         ## Get answer method from stdout file
@@ -236,6 +236,9 @@ class Player(object):
         #     os.remove(FIFO_PATH)
         # fifo_open = fifo_template.open(FIFO_PATH, 'w')
 
+        # Reassigning class property 'properties'.
+        # This operation is need for normal help of this class 
+        self.properties = self.properties()
         # Only linux at this time...
         if os.path.exists(FIFO_PATH):
             os.unlink(FIFO_PATH)
