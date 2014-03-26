@@ -19,22 +19,7 @@ elif 'linux' in sys.platform:
     FIFO_PATH = '/tmp/segmplayer.fifo'
     STDOUT_PATH = '/tmp/segmplayer.stdout'
     MPLAYER_PATH = 'mplayer'
-# COMMAND = MPLAYER_PATH + ' -ao %s -slave -quiet -idle -input file=%s'
 COMMAND = MPLAYER_PATH + ' -slave -quiet -idle -input file=%s'
-
-
-
-class CountValuesError(Exception):
-        ''' 
-        Exception class, when user passed more values 
-        than needed.
-        '''
-        def __init__(self, count):
-            self.count = count
-
-        def __str__(self):
-            string = 'Too many values. max=%s' % self.count
-            return string
 
 
 
@@ -59,6 +44,7 @@ class Properties(object):
 
 
     def __new__(cls, *args, **kwargs):
+
         def _doc_creator(item):
             ## Doc creator for property
             if item['comment'] == '':
@@ -138,6 +124,22 @@ class Player(object):
 
     def _new_values_method(self, *values):
         ## Getter for command
+
+        def get_args_error_string():
+            # Return error string for args type error
+            args_string = ''
+            for t in item['types']:
+                args_string += ('%s, ' % t)
+            error_string = 'wrong types of input args in %s(%s)' % \
+                            (item['command'],args_string[:-2])
+            return error_string
+
+        def get_count_args_error_string():
+            # Return error string for args count error
+            error_string = '%s() takes exactly %d arguments (%d given)' % \
+                            (item['command'], count_args, count_values)
+            return error_string
+
         # For single value, because it is not a tuple
         if type(values) is not tuple:
             values = (values,)
@@ -151,27 +153,28 @@ class Player(object):
                 # Test on type
                 basic_type = item['types'][num]
                 gotten_type = str(type(value))
-                print basic_type, gotten_type , value
+                # print basic_type, gotten_type , value
                 if basic_type not in gotten_type:
                     # Permit for setting integer value in float value
                     if (basic_type == 'float') and ('int' in gotten_type):
                         pass
                     else:
-                        self._send_command('quit')
-                        raise TypeError
+                        self._send_command('quit') 
+                        raise TypeError(get_args_error_string())
                 command_string += ' %s' % str(value)
             print 'EXECUTED VALUES COMMAND:', command_string
             self._send_command(command_string)
-            if item['command'] == 'loadfile':
-                # Sleep and readlines need for missing loadfile log
-                # time.sleep(0.1)
-                # self._player_answer.readlines()
-                pass
+            # if item['command'] == 'loadfile':
+            #     Sleep and readlines need for missing loadfile log
+            #     time.sleep(0.1)
+            #     self._player_answer.readlines()
         else:
             self._send_command('quit')
-            raise CountValuesError(count=count_args)
+            # raise CountValuesError(count=count_args)
+            raise TypeError(get_count_args_error_string())
 
     def __new__(cls, *args, **kwargs):
+
         def _doc_creator(item):
             ## Doc creator for command
             doc_info  = item['comment']
@@ -246,15 +249,15 @@ class Player(object):
 if __name__=='__main__':
     player = Player()
     # print help(player)
-    player.loadfile("/home/meloman/data/tmp/audiotest/3_Door_Down_-_Here_Without_You.mp3",1)
+    player.loadfile(1,"/home/meloman/data/tmp/audiotest/3_Door_Down_-_Here_Without_You.mp3")
     player.use_master()
     player.volume(100)
-    a = 1
-    while a==1:
-        time.sleep(1)
-        print '~'*79
-        print player.get_percent_pos()
-        print player.get_time_pos()
-        print player.get_time_length()
-        print player.get_file_name()
-        print player.get_meta_title()
+    # a = 1
+    # while a==1:
+    #     time.sleep(1)
+    #     print '~'*79
+    #     print player.get_percent_pos()
+    #     print player.get_time_pos()
+    #     print player.get_time_length()
+    #     print player.get_file_name()
+    #     print player.get_meta_title()
