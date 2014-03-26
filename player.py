@@ -36,12 +36,19 @@ class Properties(object):
 
     def _getter(self, item):
         ## Getter for property
-        return item
+        ## Get answer from stdout file
+        command_string = 'pausing_keep get_property %s' % item['command']
+        self._send_command(command_string)
+        answer = ''
+        # Skipping line what not is answer(and other garbage)
+        while len(answer.split('=')) != 2 :
+            answer = self._player_answer.readline()
+        print 'EXECUTED GET PROPERTY:', item['command'], answer
+        return answer.split('=')[-1][:-1]
 
     def _setter(self, args):
-        ## Getter for property
+        ## Setter for property
         print args
-
 
     def __new__(cls, *args, **kwargs):
 
@@ -86,7 +93,14 @@ class Properties(object):
         return super(Properties, cls).__new__(cls)
 
     def __init__(self, fifofile=None, stdout=None):
-        pass
+        self._fifo = fifofile
+        self._player_answer = stdout
+
+    def _send_command(self, command):
+        ## Write command in fifo file
+        command += '\n'
+        self._fifo.write(command)
+        self._fifo.flush()
 
 
 
@@ -106,13 +120,14 @@ class Player(object):
     the command 'help(Player.properies)'
     '''
 
-    properties = Properties(fifofile=FIFO_PATH, stdout=STDOUT_PATH)
+    properties = Properties()
 
     def _new_get_method(self):
         ## Get answer method from stdout file
         command_string = 'pausing_keep %s' % item['command']
         self._send_command(command_string)
         answer = ''
+        # Skipping line what not is answer(and other garbage)
         while len(answer.split('=')) != 2 :
             answer = self._player_answer.readline()
         print 'EXECUTED GET COMMAND:', item['command'], answer
@@ -230,6 +245,8 @@ class Player(object):
         subprocess.Popen(command, stdout=self._stdout)
         self._fifo = open(FIFO_PATH, 'w')
         self._player_answer = open(STDOUT_PATH, 'r')
+        # Fifo and stdout passing to properties  class
+        self.properties.__init__(self._fifo, self._player_answer)
 
     def _send_command(self, command):
         ## Write command in fifo file
@@ -242,16 +259,22 @@ class Player(object):
 if __name__=='__main__':
     player = Player()
     # print help(player)
-    # player.loadfile("/home/meloman/data/tmp/audiotest/3_Door_Down_-_Here_Without_You.mp3")
-    player.loadfile("/home/meloman/data/tmp/audiotest/8march.ogg")
+    player.loadfile("/home/meloman/data/tmp/audiotest/3_Door_Down_-_Here_Without_You.mp3")
+    # player.loadfile("/home/meloman/data/tmp/audiotest/8march.ogg")
     # player.use_master()
     # player.volume(100)
     a = 1
     while a==1:
         time.sleep(1)
         print '~'*79
-        player.get_percent_pos()
-        player.get_time_pos()
-        player.get_time_length()
-        player.get_file_name()
-        player.get_meta_title()
+    #     player.get_percent_pos()
+    #     player.get_time_pos()
+    #     player.get_time_length()
+    #     player.get_file_name()
+    #     player.get_meta_title()
+        player.properties.volume
+        player.properties.audio_bitrate
+        player.properties.channels
+        player.properties.length
+        player.properties.percent_pos
+        player.properties.stream_length
