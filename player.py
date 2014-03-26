@@ -126,10 +126,10 @@ class Player(object):
         command_string = 'pausing_keep %s' % item['command']
         self._send_command(command_string)
         answer = ''
-        while '=' not in answer: 
+        while len(answer.split('=')) != 2 :
             answer = self._player_answer.readline()
         print 'EXECUTED GET COMMAND:', item['command'], answer
-        return answer.split('=')[-1]
+        return answer.split('=')[-1][:-1]
 
     def _new_simple_method(self):
         command_string = '%s' % item['command']
@@ -164,8 +164,9 @@ class Player(object):
             self._send_command(command_string)
             if item['command'] == 'loadfile':
                 # Sleep and readlines need for missing loadfile log
-                time.sleep(0.1)
-                self._player_answer.readlines()
+                # time.sleep(0.1)
+                # self._player_answer.readlines()
+                pass
         else:
             self._send_command('quit')
             raise CountValuesError(count=count_args)
@@ -246,8 +247,8 @@ if __name__=='__main__':
     player = Player()
     # print help(player)
     player.loadfile("/home/meloman/data/tmp/audiotest/3_Door_Down_-_Here_Without_You.mp3",1)
-    player.volume(0)
     player.use_master()
+    player.volume(100)
     a = 1
     while a==1:
         time.sleep(1)

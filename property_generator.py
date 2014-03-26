@@ -7,15 +7,19 @@ from pprint import pformat
 
 
 class DictGenerator(object):
-    ''' Генератор словаря свойств mplayer '''
+    '''
+    Dictionary generator of MPlayer properties
+    '''
     def __init__(self):
         self.txt_file = open(os.path.join(os.curdir,
-                             'mplayer_properties.txt'), 'r').readlines()
+                             'data/mplayer_properties.txt'), 'r').readlines()
 
     def get_prop_dict(self):
-        ''' Метод создания словаря со словарями свойств '''
+        '''
+        Parse method. Return the properties dictionary
+        '''
         def convert_min_max(string):
-            # конвертируем значение минимума и максимума
+            # Converting max/min values
             try:
                 if '.' in string:
                     value = float(string)
@@ -43,10 +47,13 @@ class DictGenerator(object):
                 command = prop_dict['command']
                 prop_dict['comment']+= '\n' + line[58:].strip()
             property_dict[command] = prop_dict
+        print property_dict
         return property_dict
 
     def run(self):
-        ''' Метод запуска генератора '''
+        '''
+        Run method of generator
+        '''
         output_prop_file = open(os.path.join(os.curdir,
                                 'player_property.py'), 'w')
         text = 'property_dict = %s'

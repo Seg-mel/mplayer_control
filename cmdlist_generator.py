@@ -11,7 +11,7 @@ class DictGenerator(object):
 
     def __init__(self):
         self.txt_file = open(os.path.join(os.curdir,
-                             'mplayer_cmdlist.txt'), 'r').readlines()
+                             'data/mplayer_cmdlist.txt'), 'r').readlines()
 
     def get_cmd_dict(self):
         """ Convert txt file to python dictionary """
@@ -52,5 +52,4 @@ class DictGenerator(object):
 
 if __name__ == '__main__':
     DG = DictGenerator()
-    #DG.get_cmd_dict()
     DG.run()
