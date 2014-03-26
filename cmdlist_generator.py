@@ -18,27 +18,40 @@ class DictGenerator(object):
         cmds_dict = {}
         for line in self.txt_file:
             line_dict = {}
-            line_dict['property'] = False
-            line_dict['comment'] = line[0:-1]
             list_line = line.split()
+            line_dict['property'] = False
             line_dict['command'] = list_line[0]
-            arguments_type = []
-            for num, item in enumerate(list_line):
-                if num == 0: continue
-                # if '[' in item:
-                #     item = item[1:-1]
-                # line_dict['arg%d'%num] = item
-                if 'Integer' in item:
-                    type_string = 'int'
-                elif 'String' in item:
-                    type_string = 'str'
-                elif 'Float' in item:
-                    type_string = 'float'
-                arguments_type.append(type_string)
-            line_dict['types'] = arguments_type
+            line_dict['comment'], line_dict['pycommand'], line_dict['types'] =\
+            self.new_cpt(line)
             cmds_dict[list_line[0]] = line_dict
         print cmds_dict
         return cmds_dict
+
+    def new_cpt(self, comment):
+        """ 
+        Return new comment, python comment and type list 
+        from comment line 
+        """
+        comment_list =  comment.split()
+        _comment = ' '.join(comment_list)
+        types = []
+        _python_comment = ''
+        for num, item in enumerate(comment_list[1:]):
+            if 'Integer' in item:
+                string = 'int'
+            elif 'String' in item:
+                string = 'str'
+            elif 'Float' in item:
+                string = 'float'
+            else: pass
+            types.append(string)
+            if '[' in item: string = '[, <%s>]' % string
+            elif num != 0: string  = ', <%s>' % string
+            elif num == 0: string = '<%s>' % string 
+            _python_comment += string
+        new_comment = 'MPlayer command: %s' % _comment
+        python_comment = '%s(%s)' % (comment_list[0], _python_comment)
+        return new_comment, python_comment, types
 
     def run(self):
         """ Run generation """

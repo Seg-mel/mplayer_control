@@ -175,13 +175,8 @@ class Player(object):
         def _doc_creator(item):
             ## Doc creator for command
             doc_info  = item['comment']
-            args_info = ''
-            for key in item.keys():
-                if key == 'command': continue
-                if key == 'comment': continue
-                if key == 'property': continue
-                args_info += '\n%s: %s' % (key, item[key])
-            doc = '%s%s' % (doc_info, args_info)
+            py_command = item['pycommand']
+            doc = '%s\n%s' % (py_command, doc_info)
             return doc
 
         ## Create new class methods from mplayer cmdlist_dict
@@ -246,17 +241,17 @@ class Player(object):
 
 if __name__=='__main__':
     player = Player()
-    print help(player)
+    # print help(player)
     # player.loadfile("/home/meloman/data/tmp/audiotest/3_Door_Down_-_Here_Without_You.mp3")
-    # player.loadfile("/home/meloman/data/tmp/audiotest/8march.ogg")
+    player.loadfile("/home/meloman/data/tmp/audiotest/8march.ogg")
     # player.use_master()
     # player.volume(100)
-    # a = 1
-    # while a==1:
-    #     time.sleep(1)
-    #     print '~'*79
-    #     print player.get_percent_pos()
-    #     print player.get_time_pos()
-    #     print player.get_time_length()
-    #     print player.get_file_name()
-    #     print player.get_meta_title()
+    a = 1
+    while a==1:
+        time.sleep(1)
+        print '~'*79
+        player.get_percent_pos()
+        player.get_time_pos()
+        player.get_time_length()
+        player.get_file_name()
+        player.get_meta_title()
