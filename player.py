@@ -38,9 +38,9 @@ class Properties(object):
         ## Getter for property
         return item
 
-    def _setter(self, value):
+    def _setter(self, args):
         ## Getter for property
-        print value
+        print args
 
 
     def __new__(cls, *args, **kwargs):
@@ -68,7 +68,7 @@ class Properties(object):
                                                     max_info, set_info)
             return doc
 
-        ## Create new class properties from mplayer property_dict
+        # Create new class properties from mplayer property_dict
         for item in property_dict.keys():
             doc = _doc_creator(property_dict[item])
             if property_dict[item]['set'] is True:
@@ -109,6 +109,7 @@ class Player(object):
     properties = Properties(fifofile=FIFO_PATH, stdout=STDOUT_PATH)
 
     def _new_get_method(self):
+        ## Get answer method from stdout file
         command_string = 'pausing_keep %s' % item['command']
         self._send_command(command_string)
         answer = ''
@@ -118,15 +119,16 @@ class Player(object):
         return answer.split('=')[-1][:-1]
 
     def _new_simple_method(self):
+        ## Write mplayer command without an answer and arguments
         command_string = '%s' % item['command']
         print 'EXECUTED SIMPLE COMMAND:', command_string
         self._send_command(command_string)
 
-    def _new_values_method(self, *values):
-        ## Getter for command
+    def _new_args_method(self, *args):
+        ## Write mplayer command with arguments
 
         def get_args_error_string():
-            # Return error string for args type error
+            ## Return error string for args type error
             args_string = ''
             for t in item['types']:
                 args_string += ('%s, ' % t)
@@ -135,21 +137,21 @@ class Player(object):
             return error_string
 
         def get_count_args_error_string():
-            # Return error string for args count error
+            ## Return error string for args count error
             error_string = '%s() takes exactly %d arguments (%d given)' % \
-                            (item['command'], count_args, count_values)
+                            (item['command'], count_args_types, count_args)
             return error_string
 
         # For single value, because it is not a tuple
-        if type(values) is not tuple:
-            values = (values,)
-        count_values = len(values)
-        count_args = len(item['types'])
-        # Test count input values
-        if count_values <= count_args:
+        if type(args) is not tuple:
+            args = (args,)
+        count_args = len(args)
+        count_args_types = len(item['types'])
+        # Test count input args
+        if count_args <= count_args_types:
             command_string = item['command']
             # Append command string
-            for num, value in enumerate(values):
+            for num, value in enumerate(args):
                 # Test on type
                 basic_type = item['types'][num]
                 gotten_type = str(type(value))
@@ -164,13 +166,8 @@ class Player(object):
                 command_string += ' %s' % str(value)
             print 'EXECUTED VALUES COMMAND:', command_string
             self._send_command(command_string)
-            # if item['command'] == 'loadfile':
-            #     Sleep and readlines need for missing loadfile log
-            #     time.sleep(0.1)
-            #     self._player_answer.readlines()
         else:
             self._send_command('quit')
-            # raise CountValuesError(count=count_args)
             raise TypeError(get_count_args_error_string())
 
     def __new__(cls, *args, **kwargs):
@@ -204,7 +201,7 @@ class Player(object):
             if 'get' not in item:
                 if len(cmdlist_dict[item]['types']) != 0:
                     # If the list of types containes types
-                    new_method = FunctionType(cls._new_values_method.func_code, 
+                    new_method = FunctionType(cls._new_args_method.func_code, 
                                               method_dict,
                                               item)
                 else:
@@ -240,6 +237,7 @@ class Player(object):
         self._player_answer = open(STDOUT_PATH, 'r')
 
     def _send_command(self, command):
+        ## Write command in fifo file
         command += '\n'
         self._fifo.write(command)
         self._fifo.flush()
@@ -248,10 +246,11 @@ class Player(object):
 
 if __name__=='__main__':
     player = Player()
-    # print help(player)
-    player.loadfile(1,"/home/meloman/data/tmp/audiotest/3_Door_Down_-_Here_Without_You.mp3")
-    player.use_master()
-    player.volume(100)
+    print help(player)
+    # player.loadfile("/home/meloman/data/tmp/audiotest/3_Door_Down_-_Here_Without_You.mp3")
+    # player.loadfile("/home/meloman/data/tmp/audiotest/8march.ogg")
+    # player.use_master()
+    # player.volume(100)
     # a = 1
     # while a==1:
     #     time.sleep(1)
