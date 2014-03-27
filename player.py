@@ -19,7 +19,6 @@ elif 'linux' in sys.platform:
     FIFO_PATH = '/tmp/segmplayer.fifo'
     STDOUT_PATH = '/tmp/segmplayer.stdout'
     MPLAYER_PATH = 'mplayer'
-COMMAND = MPLAYER_PATH + ' -slave -quiet -idle -input file=%s'
 
 
 
@@ -79,13 +78,13 @@ class Properties(object):
         for item in property_dict.keys():
             doc = _doc_creator(property_dict[item])
             if property_dict[item]['set'] is True:
-                ## Create property with set capacity
+                # Create property with set capacity
                 prop = property(fget=partial(cls._getter, 
                                           item=property_dict[item]), 
                              fset=cls._setter, 
                              doc=doc)
             elif property_dict[item]['set'] is False:
-                ## Create property without set capacity
+                # Create property without set capacity
                 prop = property(fget=partial(cls._getter, 
                                           item=property_dict[item]),
                              doc=doc)
@@ -230,7 +229,8 @@ class Player(object):
             setattr(cls, item, new_method)
         return super(Player, cls).__new__(cls)
 
-    def __init__(self):
+    def __init__(self, mplayer=MPLAYER_PATH, fifo=FIFO_PATH, 
+                                                           stdout=STDOUT_PATH):
         # fifo_template = pipes.Template()
         # if os.path.exists(FIFO_PATH):
         #     os.remove(FIFO_PATH)
@@ -240,14 +240,15 @@ class Player(object):
         # This operation is need for normal help of this class 
         self.properties = self.properties()
         # Only linux at this time...
-        if os.path.exists(FIFO_PATH):
-            os.unlink(FIFO_PATH)
-        os.mkfifo(FIFO_PATH) 
-        self._stdout = open(STDOUT_PATH, 'w+b')
-        command = (COMMAND % FIFO_PATH).split()
+        mplayer_slave_command = mplayer + ' -slave -quiet -idle -input file=%s'
+        if os.path.exists(fifo):
+            os.unlink(fifo)
+        os.mkfifo(fifo) 
+        self._stdout = open(stdout, 'w+b')
+        command = (mplayer_slave_command % fifo).split()
         subprocess.Popen(command, stdout=self._stdout)
-        self._fifo = open(FIFO_PATH, 'w')
-        self._player_answer = open(STDOUT_PATH, 'r')
+        self._fifo = open(fifo, 'w')
+        self._player_answer = open(stdout, 'r')
         # Fifo and stdout passing to properties  class
         self.properties.__init__(self._fifo, self._player_answer)
 

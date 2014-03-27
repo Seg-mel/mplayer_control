@@ -19,7 +19,6 @@ class DictGenerator(object):
         for line in self.txt_file:
             line_dict = {}
             list_line = line.split()
-            line_dict['property'] = False
             line_dict['command'] = list_line[0]
             line_dict['comment'], line_dict['pycommand'], line_dict['types'] =\
             self.new_cpt(line)
