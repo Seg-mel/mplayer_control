@@ -28,13 +28,22 @@ class DictGenerator(object):
                     value = int(string)
                     return value
             except: return False
+
+        def convert_type(string):
+            # Converting type string
+            if 'pos' in string:
+                string = 'int'
+            if 'time' in string:
+                string = 'float'
+            return string
+
         property_dict = {}
         for line in self.txt_file:
             command = line[:19].strip()
             if command:
                 prop_dict = {
                     'command':  command,
-                    'type':     line[19:29].strip(),
+                    'type':     convert_type(line[19:29].strip()),
                     'min':      convert_min_max(line[29:37].strip()),
                     'max':      convert_min_max(line[37:45].strip()),
                     'get':      line[45:49].strip()=='X',
