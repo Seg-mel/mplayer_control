@@ -42,7 +42,7 @@ class Properties(object):
         # Skipping line what not is answer(and other garbage)
         while len(answer.split('=')) != 2 :
             answer = self._player_answer.readline()
-        print 'EXECUTED GET PROPERTY:', item['command'], answer
+        print 'EXECUTED GET PROPERTY:', item['command'], answer[:-1]
         return answer.split('=')[-1][:-1]
 
     def _setter(self, args, item):
@@ -168,7 +168,7 @@ class Player(object):
         # Skipping line what not is answer(and other garbage)
         while len(answer.split('=')) != 2 :
             answer = self._player_answer.readline()
-        print 'EXECUTED GET COMMAND:', item['command'], answer
+        print 'EXECUTED GET COMMAND:', item['command'], answer[:-1]
         return answer.split('=')[-1][:-1]
 
     def _new_simple_method(self):
@@ -302,26 +302,5 @@ class Player(object):
 
 if __name__=='__main__':
     player = Player()
-    # print help(player)
-    player.loadfile("/home/meloman/data/tmp/audiotest/3_Door_Down_-_Here_Without_You.mp3")
-    # player.loadfile("/home/meloman/data/tmp/audiotest/8march.ogg")
-    # player.use_master()
-    # player.volume(100)
-    for i in range(101):
-        time.sleep(0.1)
-        player.properties.volume = i
-    # a = 1
-    # while a==1:
-    #     time.sleep(1)
-    #     print '~'*79
-        # player.get_percent_pos()
-        # player.get_time_pos()
-        # player.get_time_length()
-        # player.get_file_name()
-        # player.get_meta_title()
-        # player.properties.volume
-        # player.properties.audio_bitrate
-        # player.properties.channels
-        # player.properties.length
-        # player.properties.percent_pos
-        # player.properties.stream_length
+    print help(player)
+    print help(player.properties)
