@@ -5,21 +5,17 @@ import os
 import sys
 import subprocess
 import time
-import pipes
+from tempfile import gettempdir
 from functools import partial
 from types import FunctionType
 from player_property import property_dict
 from player_cmdlist import cmdlist_dict
 
 if 'win' in sys.platform:
-    FIFO_PATH = '/Users/meloman/Desktop/segmplayer.fifo'
-    STDOUT_PATH = '/Users/meloman/Desktop/segmplayer.stdout'
     MPLAYER_PATH = '/mplayer/mplayer.exe'
 elif 'linux' in sys.platform:
-    FIFO_PATH = '/tmp/segmplayer.fifo'
-    STDOUT_PATH = '/tmp/segmplayer.stdout'
     MPLAYER_PATH = 'mplayer'
-
+STDOUT_PATH = os.path.join(gettempdir(),'mplayer.stdout')
 
 
 class Properties(object):
@@ -130,15 +126,15 @@ class Properties(object):
             setattr(cls, item, prop)
         return super(Properties, cls).__new__(cls)
 
-    def __init__(self, fifofile=None, stdout=None):
-        self._fifo = fifofile
+    def __init__(self, pipe=None, stdout=None):
+        self._pipe = pipe
         self._player_answer = stdout
 
     def _send_command(self, command):
-        ## Write command in fifo file
+        ## Write command in the pipe
         command += '\n'
-        self._fifo.write(command)
-        self._fifo.flush()
+        self._pipe.write(command)
+        self._pipe.flush()
 
 
 
@@ -274,29 +270,28 @@ class Player(object):
             setattr(cls, item, new_method)
         return super(Player, cls).__new__(cls)
 
-    def __init__(self, mplayer=MPLAYER_PATH, fifo=FIFO_PATH, 
-                                                           stdout=STDOUT_PATH):
+    def __init__(self, mplayer=MPLAYER_PATH, stdout=STDOUT_PATH):
         # Reassigning class property 'properties'.
         # This operation is need for normal help of this class 
         self.properties = self.properties()
-        # Only linux at this time...
-        mplayer_slave_command = mplayer + ' -slave -quiet -idle -input file=%s'
-        if os.path.exists(fifo):
-            os.unlink(fifo)
-        os.mkfifo(fifo) 
+        # Create the process
+        mplayer_slave_command = mplayer + ' -slave -quiet -idle -nolirc'
+        command = (mplayer_slave_command).split()
         self._stdout = open(stdout, 'w+b')
-        command = (mplayer_slave_command % fifo).split()
-        subprocess.Popen(command, stdout=self._stdout)
-        self._fifo = open(fifo, 'w')
+        self.process = subprocess.Popen(args=command, 
+                                   stdin=subprocess.PIPE, 
+                                   stdout=self._stdout)
+        self._pipe = self.process.stdin
         self._player_answer = open(stdout, 'r')
-        # Fifo and stdout passing to properties  class
-        self.properties.__init__(self._fifo, self._player_answer)
+        self._pid = self.process.pid
+        # Pipe and stdout passing to properties  class
+        self.properties.__init__(self._pipe, self._player_answer)
 
     def _send_command(self, command):
-        ## Write command in fifo file
+        ## Write command in the pipe
         command += '\n'
-        self._fifo.write(command)
-        self._fifo.flush()
+        self._pipe.write(command)
+        self._pipe.flush()
 
 
 

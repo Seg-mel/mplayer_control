@@ -1,6 +1,7 @@
 #!/usr/bin/env python2.7
 # -*- coding: utf-8 -*-
 
+import atexit
 import time
 from player import Player
 
@@ -12,6 +13,7 @@ class TestPlayer(object):
     def __init__(self, *arg):
         super(TestPlayer, self).__init__()
         player = Player()
+        atexit.register(player.process.terminate)
         # Look at the help for Player and Properties classes
         print help(player)
         print help(player.properties)
@@ -19,7 +21,7 @@ class TestPlayer(object):
         # player.loadfile("/home/meloman/data/tmp/audiotest/3_Door_Down_-_Here_Without_You.mp3")
         player.loadfile("/home/meloman/data/tmp/audiotest/8march.ogg")
         for i in range(11):
-            time.sleep(0.3)
+            time.sleep(0.5)
             print '~'*79
             # Getting the answer by using commands
             player.get_percent_pos()
@@ -36,6 +38,8 @@ class TestPlayer(object):
             player.properties.stream_length
             # Setting properties of player
             player.properties.volume = i*10
+        time.sleep(5)
+        player.quit()
 
 
 
