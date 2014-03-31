@@ -19,8 +19,8 @@ STDOUT_PATH = os.path.join(gettempdir(),'mplayer.stdout')
 
 
 class Properties(object):
-    ''' 
-    MPlayer properties class. 
+    '''
+    MPlayer properties class.
     ~~~~~~~~~~~~~~~~~~~~~~~~
 
     This class includes MPlayer properies.
@@ -104,7 +104,7 @@ class Properties(object):
             else:
                 max_info = '\nmax:\t%s' % item['max']
             type_info = 'type:\t%s' % item['type']
-            doc  = '%s\n%s%s%s%s' % (doc_info, type_info, min_info, 
+            doc  = '%s\n%s%s%s%s' % (doc_info, type_info, min_info,
                                                 max_info, set_info)
             return doc
 
@@ -113,14 +113,14 @@ class Properties(object):
             doc = _doc_creator(property_dict[item])
             if property_dict[item]['set'] is True:
                 # Create property with set capacity
-                prop = property(fget=partial(cls._getter, 
-                                             item=property_dict[item]), 
-                                fset=partial(cls._setter, 
+                prop = property(fget=partial(cls._getter,
+                                             item=property_dict[item]),
+                                fset=partial(cls._setter,
                                              item=property_dict[item]),
                                 doc=doc)
             elif property_dict[item]['set'] is False:
                 # Create property without set capacity
-                prop = property(fget=partial(cls._getter, 
+                prop = property(fget=partial(cls._getter,
                                              item=property_dict[item]),
                                 doc=doc)
             setattr(cls, item, prop)
@@ -143,18 +143,16 @@ class Player(object):
     MPlayer control class.
     ~~~~~~~~~~~~~~~~~~~~~
 
-    Commands 'get_property', 'set_property' and 'set_property_osd', 
+    Commands 'get_property', 'set_property' and 'set_property_osd',
     which included into MPlayer cmdlist,
     have been replaced on 'properties',
     that is the properies class.
-    Example: 
+    Example:
         Player().properties.volume
         Player().properties.volume = 10
     For getting more documetetion of properties you can use
     the command 'help(Player.properies)'
     '''
-
-    properties = Properties
 
     def _new_get_method(self):
         ## Get answer method from stdout file
@@ -241,7 +239,7 @@ class Player(object):
             if item == 'set_property_osd': continue
             doc = _doc_creator(cmdlist_dict[item])
             # Creating a dictionary that would include variables contained
-            # it item and globals() (excluding locals()). 
+            # it item and globals() (excluding locals()).
             # This is necessary for passing it to a new method.
             method_dict = {'item': cmdlist_dict[item]}
             for i in globals().keys():
@@ -251,7 +249,7 @@ class Player(object):
             if 'get' not in item:
                 if len(cmdlist_dict[item]['types']) != 0:
                     # If the list of types containes types
-                    new_method = FunctionType(cls._new_args_method.func_code, 
+                    new_method = FunctionType(cls._new_args_method.func_code,
                                               method_dict,
                                               item)
                 else:
@@ -264,22 +262,27 @@ class Player(object):
                                           method_dict,
                                           item)
             # Adding doc, editing name
-            new_method.__doc__ = doc 
+            new_method.__doc__ = doc
             new_method.__name__ = item
             # Adding function to this class as method
             setattr(cls, item, new_method)
+        # Create 'properties' property and 
+        # set the doc from Properties class
+        properties_class = Properties()
+        def get_properties(self):
+            return properties_class
+        properties = property(fget=get_properties, 
+                              doc=Properties.__doc__)
+        setattr(cls, 'properties', properties)
         return super(Player, cls).__new__(cls)
 
     def __init__(self, mplayer=MPLAYER_PATH, stdout=STDOUT_PATH):
-        # Reassigning class property 'properties'.
-        # This operation is need for normal help of this class 
-        self.properties = self.properties()
         # Create the process
         mplayer_slave_command = mplayer + ' -slave -quiet -idle -nolirc'
         command = (mplayer_slave_command).split()
         self._stdout = open(stdout, 'w+b')
-        self.process = subprocess.Popen(args=command, 
-                                   stdin=subprocess.PIPE, 
+        self.process = subprocess.Popen(args=command,
+                                   stdin=subprocess.PIPE,
                                    stdout=self._stdout)
         self._pipe = self.process.stdin
         self._player_answer = open(stdout, 'r')
