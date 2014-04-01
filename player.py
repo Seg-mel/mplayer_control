@@ -3,8 +3,9 @@
 
 import os
 import sys
-import subprocess
 import time
+from subprocess import PIPE
+from psutil import Process, Popen
 from tempfile import gettempdir
 from functools import partial
 from types import FunctionType
@@ -16,6 +17,7 @@ if 'win' in sys.platform:
 elif 'linux' in sys.platform:
     MPLAYER_PATH = 'mplayer'
 STDOUT_PATH = os.path.join(gettempdir(),'mplayer.stdout')
+PID_PATH = os.path.join(gettempdir(), 'mplayer.pid')
 
 
 class Properties(object):
@@ -30,8 +32,10 @@ class Properties(object):
     '''
 
     def _getter(self, item):
-        ## Getter for property
-        ## Get answer from stdout file
+        '''
+        Getter for property.
+        Get answer from stdout file
+        '''
         command_string = 'pausing_keep get_property %s' % item['command']
         self._send_command(command_string)
         answer = ''
@@ -42,7 +46,7 @@ class Properties(object):
         return answer.split('=')[-1][:-1]
 
     def _setter(self, args, item):
-        ## Setter for property
+        ''' Setter for property '''
 
         def type_test(arg):
             ## Type test function
@@ -131,7 +135,7 @@ class Properties(object):
         self._player_answer = stdout
 
     def _send_command(self, command):
-        ## Write command in the pipe
+        ''' Write command in the pipe '''
         command += '\n'
         self._pipe.write(command)
         self._pipe.flush()
@@ -154,8 +158,22 @@ class Player(object):
     the command 'help(Player.properies)'
     '''
 
+    @property
+    def process(self):
+        ''' 
+        The MPlayer process.
+        For more instructions look at the 
+        documentation of psutil.Process(pid)
+        (https://code.google.com/p/psutil/wiki/Documentation#Classes)
+         '''
+        return self._process
+
+    @process.setter
+    def process(self, value):
+        self._process = value
+
     def _new_get_method(self):
-        ## Get answer method from stdout file
+        ''' Get answer method from stdout file '''
         command_string = 'pausing_keep %s' % item['command']
         self._send_command(command_string)
         answer = ''
@@ -166,13 +184,13 @@ class Player(object):
         return answer.split('=')[-1][:-1]
 
     def _new_simple_method(self):
-        ## Write mplayer command without an answer and arguments
+        ''' Write mplayer command without an answer and arguments '''
         command_string = '%s' % item['command']
         print 'EXECUTED SIMPLE COMMAND:', command_string
         self._send_command(command_string)
 
     def _new_args_method(self, *args):
-        ## Write mplayer command with arguments
+        ''' Write mplayer command with arguments '''
 
         def get_args_error_string():
             ## Return error string for args type error
@@ -277,28 +295,61 @@ class Player(object):
         return super(Player, cls).__new__(cls)
 
     def __init__(self, mplayer=MPLAYER_PATH, stdout=STDOUT_PATH):
-        # Create the process
-        mplayer_slave_command = mplayer + ' -slave -quiet -idle -nolirc'
-        command = (mplayer_slave_command).split()
-        self._stdout = open(stdout, 'w+b')
-        self.process = subprocess.Popen(args=command,
-                                   stdin=subprocess.PIPE,
-                                   stdout=self._stdout)
-        self._pipe = self.process.stdin
-        self._player_answer = open(stdout, 'r')
-        self._pid = self.process.pid
-        # Pipe and stdout passing to properties  class
-        self.properties.__init__(self._pipe, self._player_answer)
+        self._mplayer_path = mplayer
+        self._stdout_path = stdout
+        self._pid = None
+        self._process = None
 
     def _send_command(self, command):
-        ## Write command in the pipe
+        ''' Write command in the pipe '''
         command += '\n'
         self._pipe.write(command)
         self._pipe.flush()
+
+    def create_new_process(self):
+        ''' Create the new process '''
+        mplayer_slave_command = '%s -slave -quiet -idle -nolirc' %\
+                                                             self._mplayer_path
+        command = (mplayer_slave_command).split()
+        self._stdout = open(self._stdout_path, 'w+b')
+        self._process = Popen(args=command,
+                              stdin=PIPE,
+                              stdout=self._stdout)
+        self._pipe = self._process.stdin
+        self._player_answer = open(self._stdout_path, 'r')
+        self._pid = self._process.pid
+        # Write the pid to file
+        pid_file = open(PID_PATH, 'w')
+        pid_file.write(str(self._pid))
+        pid_file.close()
+        # Pipe and stdout passing to properties  class
+        self.properties.__init__(self._pipe, self._player_answer)
+
+    def connect_to_process(self):
+        ''' 
+        Connect to the existing process of mplayer.
+        Use for get process without creating tne new process.
+        For example, if your GUY has crashed, 
+        but the mplayer continues to play.
+        (Only Linux at this time)
+        '''
+        pid_file = open(PID_PATH, 'r')
+        self._pid = int(pid_file.readline())
+        pid_file.close()
+        process_path = '/proc/%d' % self._pid
+        print process_path
+        if (self._pid is not None) and (os.path.exists(process_path)):
+            print 'PROCESS EXISTS'
+            self._process = Process(self._pid)
+            self._pipe = open(os.path.join(process_path, 'fd', '0'), 'w')
+            self._player_answer = open(os.path.join(
+                                                 process_path, 'fd', '1'), 'r')
+        else:
+            print 'PROCESS DOES NOT EXISTS'
 
 
 
 if __name__=='__main__':
     player = Player()
     print help(player)
-    print help(player.properties)
+    # print help(player.properties)

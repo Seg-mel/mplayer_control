@@ -3,7 +3,7 @@
 
 import atexit
 import time
-from player import Player
+from player import Player, MPLAYER_PATH, STDOUT_PATH
 
 
 
@@ -12,7 +12,15 @@ class TestPlayer(object):
 
     def __init__(self, *arg):
         super(TestPlayer, self).__init__()
-        player = Player()
+        # Initializing the player
+        player = Player(mplayer=MPLAYER_PATH, stdout=STDOUT_PATH)
+        # Create the new mplayer process
+        player.create_new_process()
+        # Print process name
+        print player.process.name
+        # Print process pid
+        print player.process.pid
+        player.connect_to_process()
         atexit.register(player.process.terminate)
         # Look at the help for Player and Properties classes
         print help(player)
@@ -38,7 +46,7 @@ class TestPlayer(object):
             player.properties.stream_length
             # Setting properties of player
             player.properties.volume = i*10
-        time.sleep(5)
+        time.sleep(2)
         player.quit()
 
 
