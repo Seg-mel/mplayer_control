@@ -3,20 +3,23 @@
 
 import os
 import sys
-import time
 from subprocess import PIPE
-from psutil import Process, Popen
+from psutil import Process, Popen, pid_exists
 from tempfile import gettempdir
 from functools import partial
 from types import FunctionType
 from player_property import property_dict
 from player_cmdlist import cmdlist_dict
 
-if 'win' in sys.platform:
+# Constants
+PLATFORM = sys.platform
+if 'win' in PLATFORM:
     MPLAYER_PATH = '/mplayer/mplayer.exe'
-elif 'linux' in sys.platform:
+    PIPE_PATH = ''
+elif 'linux' in PLATFORM:
     MPLAYER_PATH = 'mplayer'
-STDOUT_PATH = os.path.join(gettempdir(),'mplayer.stdout')
+    PIPE_PATH = os.path.join(gettempdir(), 'mplayer.pipe')
+STDOUT_PATH = os.path.join(gettempdir(), 'mplayer.stdout')
 PID_PATH = os.path.join(gettempdir(), 'mplayer.pid')
 
 
@@ -168,10 +171,6 @@ class Player(object):
          '''
         return self._process
 
-    @process.setter
-    def process(self, value):
-        self._process = value
-
     def _new_get_method(self):
         ''' Get answer method from stdout file '''
         command_string = 'pausing_keep %s' % item['command']
@@ -294,8 +293,9 @@ class Player(object):
         setattr(cls, 'properties', properties)
         return super(Player, cls).__new__(cls)
 
-    def __init__(self, mplayer=MPLAYER_PATH, stdout=STDOUT_PATH):
+    def __init__(self, mplayer=MPLAYER_PATH, pipe=PIPE_PATH, stdout=STDOUT_PATH):
         self._mplayer_path = mplayer
+        self._pipe_path = pipe
         self._stdout_path = stdout
         self._pid = None
         self._process = None
@@ -311,11 +311,19 @@ class Player(object):
         mplayer_slave_command = '%s -slave -quiet -idle -nolirc' %\
                                                              self._mplayer_path
         command = (mplayer_slave_command).split()
+        if 'win' in PLATFORM:
+            self._pipe = PIPE
+        else:
+            if os.path.exists(self._pipe_path):
+                os.unlink(self._pipe_path)
+            os.mkfifo(self._pipe_path)
+            self._pipe = open(self._pipe_path, 'w+b')
+        if os.path.exists(self._stdout_path):
+            os.remove(self._stdout_path)
         self._stdout = open(self._stdout_path, 'w+b')
         self._process = Popen(args=command,
-                              stdin=PIPE,
+                              stdin=self._pipe,
                               stdout=self._stdout)
-        self._pipe = self._process.stdin
         self._player_answer = open(self._stdout_path, 'r')
         self._pid = self._process.pid
         # Write the pid to file
@@ -331,25 +339,27 @@ class Player(object):
         Use for get process without creating tne new process.
         For example, if your GUY has crashed, 
         but the mplayer continues to play.
-        (Only Linux at this time)
+        (Only Unix)
         '''
-        pid_file = open(PID_PATH, 'r')
-        self._pid = int(pid_file.readline())
-        pid_file.close()
-        process_path = '/proc/%d' % self._pid
-        print process_path
-        if (self._pid is not None) and (os.path.exists(process_path)):
+        try:
+            pid_file = open(PID_PATH, 'r')
+            self._pid = int(pid_file.readline())
+            pid_file.close()
+        except: self._pid = None
+        if (self._pid is not None) and (pid_exists(self._pid)):
             print 'PROCESS EXISTS'
             self._process = Process(self._pid)
-            self._pipe = open(os.path.join(process_path, 'fd', '0'), 'w')
-            self._player_answer = open(os.path.join(
-                                                 process_path, 'fd', '1'), 'r')
+            self._pipe = open(self._pipe_path, 'w+b')
+            self._player_answer = open(self._stdout_path, 'r')
+            self._player_answer.readlines()
+            self.properties.__init__(self._pipe, self._player_answer)
         else:
             print 'PROCESS DOES NOT EXISTS'
+            self._process = None
 
 
 
 if __name__=='__main__':
     player = Player()
     print help(player)
-    # print help(player.properties)
+    print help(player.properties)

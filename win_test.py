@@ -25,8 +25,8 @@ class TestPlayer(object):
         print help(player)
         print help(player.properties)
         # Setting the 'loadfile' command
-        player.loadfile("/home/meloman/data/tmp/audiotest/3_Door_Down_-_Here_Without_You.mp3")
-        # player.loadfile("/home/meloman/data/tmp/audiotest/8march.ogg")
+        player.loadfile("/audiotest/3_Door_Down_-_Here_Without_You.mp3")
+        # player.loadfile("/audiotest/8march.ogg")
         for i in range(11):
             time.sleep(0.5)
             print '~'*79
@@ -46,11 +46,6 @@ class TestPlayer(object):
             # Setting properties of player
             player.properties.volume = i*10
         time.sleep(2)
-        # Connect to the existing process
-        player.connect_to_process()
-        player.get_percent_pos()
-        player.get_time_pos()
-        time.sleep(1)
         player.quit()
 
 
