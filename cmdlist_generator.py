@@ -44,7 +44,10 @@ class DictGenerator(object):
                 string = 'float'
             else: pass
             types.append(string)
-            if '[' in item: string = '[, <%s>]' % string
+            if '[' in item and num!=0: 
+                string = '[, <%s>]' % string
+            elif '[' in item and num==0: 
+                string = '[<%s>]' % string
             elif num != 0: string  = ', <%s>' % string
             elif num == 0: string = '<%s>' % string 
             _python_comment += string

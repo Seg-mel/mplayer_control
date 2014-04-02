@@ -13,7 +13,10 @@ class TestPlayer(object):
     def __init__(self, *arg):
         super(TestPlayer, self).__init__()
         # Initializing the player
-        player = Player(mplayer=MPLAYER_PATH, stdout=STDOUT_PATH)
+        player = Player(mplayer=MPLAYER_PATH, pipe=PIPE_PATH, 
+                                                            stdout=STDOUT_PATH)
+        # Adding the option to the start mplayer command
+        player.add_command_option(option='-nolirc')
         # Create the new mplayer process
         player.create_new_process()
         atexit.register(player.process.terminate)

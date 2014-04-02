@@ -35,6 +35,10 @@ class DictGenerator(object):
                 string = 'int'
             if 'time' in string:
                 string = 'float'
+            if 'str list' in string:
+                string = 'str'
+            if 'string' in string:
+                string = 'str'
             return string
 
         property_dict = {}

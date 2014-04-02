@@ -21,6 +21,7 @@ elif 'linux' in PLATFORM:
     PIPE_PATH = os.path.join(gettempdir(), 'mplayer.pipe')
 STDOUT_PATH = os.path.join(gettempdir(), 'mplayer.stdout')
 PID_PATH = os.path.join(gettempdir(), 'mplayer.pid')
+COMMAND_LIST = ['-slave', '-quiet', '-idle']
 
 
 class Properties(object):
@@ -293,8 +294,9 @@ class Player(object):
         setattr(cls, 'properties', properties)
         return super(Player, cls).__new__(cls)
 
-    def __init__(self, mplayer=MPLAYER_PATH, pipe=PIPE_PATH, stdout=STDOUT_PATH):
-        self._mplayer_path = mplayer
+    def __init__(self, mplayer=MPLAYER_PATH, pipe=PIPE_PATH, 
+                                                           stdout=STDOUT_PATH):
+        self._command = [mplayer] + COMMAND_LIST
         self._pipe_path = pipe
         self._stdout_path = stdout
         self._pid = None
@@ -308,22 +310,26 @@ class Player(object):
 
     def create_new_process(self):
         ''' Create the new process '''
-        mplayer_slave_command = '%s -slave -quiet -idle -nolirc' %\
-                                                             self._mplayer_path
-        command = (mplayer_slave_command).split()
+        # mplayer_slave_command = '%s -slave -quiet -idle -nolirc' %\
+        #                                                      self._mplayer_path
+        # command = (mplayer_slave_command).split()
         if 'win' in PLATFORM:
-            self._pipe = PIPE
+            self._stdout = open(self._stdout_path, 'w+b')
+            self._process = Popen(args=self._command,
+                                  stdin=PIPE,
+                                  stdout=self._stdout)
+            self._pipe = self._process.stdin
         else:
             if os.path.exists(self._pipe_path):
                 os.unlink(self._pipe_path)
             os.mkfifo(self._pipe_path)
             self._pipe = open(self._pipe_path, 'w+b')
-        if os.path.exists(self._stdout_path):
-            os.remove(self._stdout_path)
-        self._stdout = open(self._stdout_path, 'w+b')
-        self._process = Popen(args=command,
-                              stdin=self._pipe,
-                              stdout=self._stdout)
+            if os.path.exists(self._stdout_path):
+                os.remove(self._stdout_path)
+            self._stdout = open(self._stdout_path, 'w+b')
+            self._process = Popen(args=self._command,
+                                  stdin=self._pipe,
+                                  stdout=self._stdout)
         self._player_answer = open(self._stdout_path, 'r')
         self._pid = self._process.pid
         # Write the pid to file
@@ -356,6 +362,13 @@ class Player(object):
         else:
             print 'PROCESS DOES NOT EXISTS'
             self._process = None
+
+    def add_command_option(self, option, value=None):
+        ''' Adding an option to the start mplayer command list '''
+        self._command.append(option)
+        if value is not None:
+            self._command.append(value)
+        print 'START MPLAYER COMMAND IS UPDATED: %s' % ' '.join(self._command)
 
 
 
