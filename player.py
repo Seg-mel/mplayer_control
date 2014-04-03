@@ -1,6 +1,9 @@
 #!/usr/bin/env python2.7
 # -*- coding: utf-8 -*-
 
+# Player module
+# Copyright (C) 2014 Musikhin Andrey <melomansegfault@gmail.com>
+
 import os
 import sys
 from subprocess import PIPE
@@ -237,7 +240,7 @@ class Player(object):
                 type_test(num, value)
                 # Create command string
                 command_string += ' %s' % str(value)
-            if self._debug: print 'EXECUTED VALUES COMMAND:', command_string
+            if self._debug: print 'EXECUTED ARGS COMMAND:', command_string
             # Sending the command
             self._send_command(command_string)
         else:
@@ -314,9 +317,6 @@ class Player(object):
 
     def create_new_process(self):
         ''' Create the new process '''
-        # mplayer_slave_command = '%s -slave -quiet -idle -nolirc' %\
-        #                                                      self._mplayer_path
-        # command = (mplayer_slave_command).split()
         if 'win' in PLATFORM:
             self._stdout = open(self._stdout_path, 'w+b')
             self._process = Popen(args=self._command,

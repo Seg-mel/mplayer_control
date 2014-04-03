@@ -1,6 +1,9 @@
 #!/usr/bin/env python2.7
 # -*- coding: utf-8 -*-
 
+# Linux Test module
+# Copyright (C) 2014 Musikhin Andrey <melomansegfault@gmail.com>
+
 import atexit
 import time
 from player import Player, MPLAYER_PATH, STDOUT_PATH, PIPE_PATH

@@ -1,6 +1,9 @@
 #!/usr/bin/env python2.7
 # -*- coding: utf-8 -*-
 
+# Property Generator module
+# Copyright (C) 2014 Musikhin Andrey <melomansegfault@gmail.com>
+
 import os
 from pprint import pformat
 

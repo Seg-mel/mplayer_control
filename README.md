@@ -21,13 +21,13 @@ player.quit()
 ```
 Output in the console:
 ``` Python
-EXECUTED VALUES COMMAND: loadfile /home/user/music/sound.ogg
+EXECUTED ARGS COMMAND: loadfile /home/user/music/sound.ogg
 EXECUTED GET COMMAND: get_percent_pos ANS_PERCENT_POSITION=1
 1
 EXECUTED GET PROPERTY: volume ANS_volume=100.000000
 100.000000
 EXECUTED SET PROPERTY: volume 90
-EXECUTED SIMPLE COMMAND: quit
+EXECUTED ARGS COMMAND: quit
 ```
 For more information look at example files 
 [Linux test](https://github.com/Seg-mel/mplayer_control/blob/master/linux_test.py)
