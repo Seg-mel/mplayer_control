@@ -46,7 +46,8 @@ class Properties(object):
         # Skipping line what not is answer(and other garbage)
         while len(answer.split('=')) != 2 :
             answer = self._player_answer.readline()
-        print 'EXECUTED GET PROPERTY:', item['command'], answer[:-1]
+        if self._debug: 
+            print 'EXECUTED GET PROPERTY:', item['command'], answer[:-1]
         return answer.split('=')[-1][:-1]
 
     def _setter(self, args, item):
@@ -89,7 +90,7 @@ class Properties(object):
         command_string = 'pausing_keep set_property %s %s' %\
                                                    (item['command'], str(args))
         self._send_command(command_string)
-        print 'EXECUTED SET PROPERTY:', item['command'], args
+        if self._debug: print 'EXECUTED SET PROPERTY:', item['command'], args
 
     def __new__(cls, *args, **kwargs):
 
@@ -134,9 +135,10 @@ class Properties(object):
             setattr(cls, item, prop)
         return super(Properties, cls).__new__(cls)
 
-    def __init__(self, pipe=None, stdout=None):
+    def __init__(self, pipe=None, stdout=None, debug=False):
         self._pipe = pipe
         self._player_answer = stdout
+        self._debug = debug
 
     def _send_command(self, command):
         ''' Write command in the pipe '''
@@ -180,13 +182,14 @@ class Player(object):
         # Skipping line what not is answer(and other garbage)
         while len(answer.split('=')) != 2 :
             answer = self._player_answer.readline()
-        print 'EXECUTED GET COMMAND:', item['command'], answer[:-1]
+        if self._debug: 
+            print 'EXECUTED GET COMMAND:', item['command'], answer[:-1]
         return answer.split('=')[-1][:-1]
 
     def _new_simple_method(self):
         ''' Write mplayer command without an answer and arguments '''
         command_string = '%s' % item['command']
-        print 'EXECUTED SIMPLE COMMAND:', command_string
+        if self._debug: print 'EXECUTED SIMPLE COMMAND:', command_string
         self._send_command(command_string)
 
     def _new_args_method(self, *args):
@@ -234,7 +237,7 @@ class Player(object):
                 type_test(num, value)
                 # Create command string
                 command_string += ' %s' % str(value)
-            print 'EXECUTED VALUES COMMAND:', command_string
+            if self._debug: print 'EXECUTED VALUES COMMAND:', command_string
             # Sending the command
             self._send_command(command_string)
         else:
@@ -295,10 +298,11 @@ class Player(object):
         return super(Player, cls).__new__(cls)
 
     def __init__(self, mplayer=MPLAYER_PATH, pipe=PIPE_PATH, 
-                                                           stdout=STDOUT_PATH):
+                                             stdout=STDOUT_PATH, debug=False):
         self._command = [mplayer] + COMMAND_LIST
         self._pipe_path = pipe
         self._stdout_path = stdout
+        self._debug = debug
         self._pid = None
         self._process = None
 
@@ -337,7 +341,7 @@ class Player(object):
         pid_file.write(str(self._pid))
         pid_file.close()
         # Pipe and stdout passing to properties  class
-        self.properties.__init__(self._pipe, self._player_answer)
+        self.properties.__init__(self._pipe, self._player_answer, self._debug)
 
     def connect_to_process(self):
         ''' 
@@ -353,14 +357,15 @@ class Player(object):
             pid_file.close()
         except: self._pid = None
         if (self._pid is not None) and (pid_exists(self._pid)):
-            print 'PROCESS EXISTS'
+            if self._debug: print 'PROCESS EXISTS'
             self._process = Process(self._pid)
             self._pipe = open(self._pipe_path, 'w+b')
             self._player_answer = open(self._stdout_path, 'r')
             self._player_answer.readlines()
-            self.properties.__init__(self._pipe, self._player_answer)
+            self.properties.__init__(self._pipe, self._player_answer, 
+                                                                   self._debug)
         else:
-            print 'PROCESS DOES NOT EXISTS'
+            if self._debug: print 'PROCESS DOES NOT EXISTS'
             self._process = None
 
     def add_command_option(self, option, value=None):
@@ -368,7 +373,9 @@ class Player(object):
         self._command.append(option)
         if value is not None:
             self._command.append(value)
-        print 'START MPLAYER COMMAND IS UPDATED: %s' % ' '.join(self._command)
+        if self._debug: 
+            print 'START MPLAYER COMMAND IS UPDATED: %s' %\
+                                                        ' '.join(self._command)
 
 
 

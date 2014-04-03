@@ -3,7 +3,7 @@
 
 import atexit
 import time
-from player import Player, MPLAYER_PATH, STDOUT_PATH
+from player import Player, MPLAYER_PATH, STDOUT_PATH, PIPE_PATH
 
 
 
@@ -14,17 +14,17 @@ class TestPlayer(object):
         super(TestPlayer, self).__init__()
         # Initializing the player
         player = Player(mplayer=MPLAYER_PATH, pipe=PIPE_PATH, 
-                                                            stdout=STDOUT_PATH)
+                                              stdout=STDOUT_PATH, debug=False)
         # Adding the option to the start mplayer command
         player.add_command_option(option='-nolirc')
-        # Create the new mplayer process
+        # Creating a new mplayer process
         player.create_new_process()
         atexit.register(player.process.terminate)
         # Print process name
         print 'PROCESS NAME: ', player.process.name
         # Print process pid
         print 'PROCESS PID: ', player.process.pid
-        # Look at the help for Player and Properties classes
+        # Print help text for Player class and it's properties
         print help(player)
         print help(player.properties)
         # Setting the 'loadfile' command
@@ -33,18 +33,18 @@ class TestPlayer(object):
             time.sleep(0.5)
             print '~'*79
             # Getting the answer by using commands
-            player.get_percent_pos()
-            player.get_time_pos()
-            player.get_time_length()
-            player.get_file_name()
-            player.get_meta_title()
+            print player.get_percent_pos()
+            print player.get_time_pos()
+            print player.get_time_length()
+            print player.get_file_name()
+            print player.get_meta_title()
             # Getting the answer by using properties
-            player.properties.volume
-            player.properties.audio_bitrate
-            player.properties.channels
-            player.properties.length
-            player.properties.percent_pos
-            player.properties.stream_length
+            print player.properties.volume
+            print player.properties.audio_bitrate
+            print player.properties.channels
+            print player.properties.length
+            print player.properties.percent_pos
+            print player.properties.stream_length
             # Setting properties of player
             player.properties.volume = i*10
         time.sleep(2)

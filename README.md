@@ -11,7 +11,7 @@ Short example:
 ``` Python
 from mplayer_control.player import Player
 
-player = Player()
+player = Player(debug=True)
 player.create_new_process()
 player.loadfile("/home/user/music/sound.ogg")
 print player.get_percent_pos()
