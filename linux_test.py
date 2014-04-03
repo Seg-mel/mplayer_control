@@ -28,8 +28,7 @@ class TestPlayer(object):
         print help(player)
         print help(player.properties)
         # Setting the 'loadfile' command
-        player.loadfile("/home/meloman/data/tmp/audiotest/3_Door_Down_-_Here_Without_You.mp3")
-        # player.loadfile("/home/meloman/data/tmp/audiotest/8march.ogg")
+        player.loadfile("/home/user/music/sound.ogg")
         for i in range(11):
             time.sleep(0.5)
             print '~'*79
@@ -54,6 +53,7 @@ class TestPlayer(object):
         player.get_percent_pos()
         player.get_time_pos()
         time.sleep(1)
+        # Kill process
         player.quit()
 
 

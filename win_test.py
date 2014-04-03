@@ -28,8 +28,7 @@ class TestPlayer(object):
         print help(player)
         print help(player.properties)
         # Setting the 'loadfile' command
-        player.loadfile("/audiotest/3_Door_Down_-_Here_Without_You.mp3")
-        # player.loadfile("/audiotest/8march.ogg")
+        player.loadfile("C:\music\sound.ogg")
         for i in range(11):
             time.sleep(0.5)
             print '~'*79
@@ -49,6 +48,7 @@ class TestPlayer(object):
             # Setting properties of player
             player.properties.volume = i*10
         time.sleep(2)
+        # Kill process
         player.quit()
 
 
