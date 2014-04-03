@@ -9,14 +9,14 @@ from pprint import pformat
 
 
 
-class DictGenerator(object):
+class CmdDictGenerator(object):
     """ Command list ditionary generator  """
 
     def __init__(self):
         self.txt_file = open(os.path.join(os.curdir,
                              'data/mplayer_cmdlist.txt'), 'r').readlines()
 
-    def get_cmd_dict(self):
+    def _get_cmd_dict(self):
         """ Convert txt file to python dictionary """
         cmds_dict = {}
         for line in self.txt_file:
@@ -24,12 +24,12 @@ class DictGenerator(object):
             list_line = line.split()
             line_dict['command'] = list_line[0]
             line_dict['comment'], line_dict['pycommand'], line_dict['types'] =\
-            self.new_cpt(line)
+            self._new_cpt(line)
             cmds_dict[list_line[0]] = line_dict
         print cmds_dict
         return cmds_dict
 
-    def new_cpt(self, comment):
+    def _new_cpt(self, comment):
         """ 
         Return new comment, python comment and type list 
         from comment line 
@@ -63,11 +63,11 @@ class DictGenerator(object):
         output_prop_file = open(os.path.join(os.curdir,
                                 'player_cmdlist.py'), 'w')
         text = 'cmdlist_dict = %s'
-        output_prop_file.write(text % pformat(self.get_cmd_dict()))
+        output_prop_file.write(text % pformat(self._get_cmd_dict()))
         output_prop_file.close()
 
 
 
 if __name__ == '__main__':
-    DG = DictGenerator()
+    DG = CmdDictGenerator()
     DG.run()

@@ -9,7 +9,7 @@ But this feature is in development for Windows.
 
 Short example:
 ``` Python
-from mplayer_control.player import Player
+from mplayer_control import Player
 
 player = Player(debug=True)
 player.create_new_process()

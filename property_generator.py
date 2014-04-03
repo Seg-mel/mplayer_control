@@ -9,7 +9,7 @@ from pprint import pformat
 
 
 
-class DictGenerator(object):
+class PropDictGenerator(object):
     '''
     Dictionary generator of MPlayer properties
     '''
@@ -17,7 +17,7 @@ class DictGenerator(object):
         self.txt_file = open(os.path.join(os.curdir,
                              'data/mplayer_properties.txt'), 'r').readlines()
 
-    def get_prop_dict(self):
+    def _get_prop_dict(self):
         '''
         Parse method. Return the properties dictionary
         '''
@@ -72,11 +72,11 @@ class DictGenerator(object):
         output_prop_file = open(os.path.join(os.curdir,
                                 'player_property.py'), 'w')
         text = 'property_dict = %s'
-        output_prop_file.write(text % pformat(self.get_prop_dict()))
+        output_prop_file.write(text % pformat(self._get_prop_dict()))
         output_prop_file.close()
 
 
 
 if __name__ == '__main__':
-    DG = DictGenerator()
+    DG = PropDictGenerator()
     DG.run()
