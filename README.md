@@ -3,11 +3,11 @@ MPlayer Control
 
 ###This is a cross-platform Python library for [MPlayer](http://www.mplayerhq.hu/) control.
 
-The library was tested in Ubuntu linux and Windows.
-The client-server system only works in Unix at this time.
-But this feature is under development for Windows.
+The library was tested in Ubuntu Linux and Windows.
+Connecting to already running mplayer process is currently not supported on Windows.
+But this feature is in development for Windows.
 
-Mini example:
+Short example:
 ``` Python
 from mplayer_control.player import Player
 
@@ -19,7 +19,7 @@ print player.properties.volume
 player.properties.volume = 90
 player.quit()
 ```
-and you will get the result in the terminal:
+Output in the console:
 ``` Python
 EXECUTED VALUES COMMAND: loadfile /home/user/music/sound.ogg
 EXECUTED GET COMMAND: get_percent_pos ANS_PERCENT_POSITION=1
