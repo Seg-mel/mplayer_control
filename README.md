@@ -30,4 +30,4 @@ EXECUTED SET PROPERTY: volume 90
 EXECUTED ARGS COMMAND: quit
 ```
 For more information look at the example file 
-[test.py](https://github.com/Seg-mel/mplayer_control/blob/master/linux_test.py).
+[test.py](https://github.com/Seg-mel/mplayer_control/blob/master/test.py).
