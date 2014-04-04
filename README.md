@@ -29,7 +29,5 @@ EXECUTED GET PROPERTY: volume ANS_volume=100.000000
 EXECUTED SET PROPERTY: volume 90
 EXECUTED ARGS COMMAND: quit
 ```
-For more information look at example files 
-[Linux test](https://github.com/Seg-mel/mplayer_control/blob/master/linux_test.py)
-and
-[Windows test](https://github.com/Seg-mel/mplayer_control/blob/master/win_test.py).
+For more information look at the example file 
+[test.py](https://github.com/Seg-mel/mplayer_control/blob/master/linux_test.py).
