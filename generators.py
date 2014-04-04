@@ -16,8 +16,9 @@ class CmdDictGenerator(object):
     def __init__(self, mplayer='mplayer'):
         self._cmdlist = [line for line in Popen(
                       [mplayer, '-input', 'cmdlist'], stdout=PIPE).stdout][:-1]
-        self._doc_file = open(os.path.join(os.curdir, 
-                             'data/mplayer_cmdlist_docs'), 'r').readlines()
+        self._doc_file = open(
+                       os.path.join(os.path.dirname(os.path.abspath(__file__)), 
+                       'data/mplayer_cmdlist_docs'), 'r').readlines()
         self._cmdlist_dict = {}
 
     def _get_cmd_dict(self):
@@ -94,8 +95,9 @@ class PropDictGenerator(object):
     Dictionary generator of MPlayer properties
     '''
     def __init__(self):
-        self.txt_file = open(os.path.join(os.curdir,
-                             'data/mplayer_properties'), 'r').readlines()
+        self.txt_file = open(
+                       os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                       'data/mplayer_properties'), 'r').readlines()
 
     def _get_prop_dict(self):
         '''
@@ -149,8 +151,9 @@ class PropDictGenerator(object):
         '''
         Run method of generator
         '''
-        output_prop_file = open(os.path.join(os.curdir,
-                                'player_property.py'), 'w')
+        output_prop_file = open(
+                       os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                       'player_properties.py'), 'w')
         text = 'property_dict = %s'
         output_prop_file.write(text % pformat(self._get_prop_dict()))
         output_prop_file.close()

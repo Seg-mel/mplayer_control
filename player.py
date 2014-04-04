@@ -24,7 +24,6 @@ elif 'linux' in PLATFORM:
     PIPE_PATH = os.path.join(gettempdir(), 'mplayer.pipe')
 STDOUT_PATH = os.path.join(gettempdir(), 'mplayer.stdout')
 PID_PATH = os.path.join(gettempdir(), 'mplayer.pid')
-COMMAND_LIST = ['-slave', '-quiet', '-idle']
 
 
 
@@ -249,7 +248,7 @@ class Player(object):
             raise TypeError(get_count_args_error_string())
 
     def __new__(cls, mplayer=MPLAYER_PATH, pipe=PIPE_PATH, 
-                                           stdout=STDOUT_PATH, debug=False):
+                     stdout=STDOUT_PATH, pid=PID_PATH, debug=False):
 
         def _doc_creator(item):
             ## Doc creator for command
@@ -304,10 +303,11 @@ class Player(object):
         return super(Player, cls).__new__(cls)
 
     def __init__(self, mplayer=MPLAYER_PATH, pipe=PIPE_PATH, 
-                                             stdout=STDOUT_PATH, debug=False):
-        self._command = [mplayer] + COMMAND_LIST
+                       stdout=STDOUT_PATH, pid=PID_PATH, debug=False):
+        self._command = [mplayer, '-slave', '-quiet', '-idle']
         self._pipe_path = pipe
         self._stdout_path = stdout
+        self._pid_path = pid
         self._debug = debug
         self._pid = None
         self._process = None
@@ -340,7 +340,7 @@ class Player(object):
         self._player_answer = open(self._stdout_path, 'r')
         self._pid = self._process.pid
         # Write the pid to file
-        pid_file = open(PID_PATH, 'w')
+        pid_file = open(self._pid_path, 'w')
         pid_file.write(str(self._pid))
         pid_file.close()
         # Pipe and stdout passing to properties  class
@@ -355,7 +355,7 @@ class Player(object):
         (Only Unix)
         '''
         try:
-            pid_file = open(PID_PATH, 'r')
+            pid_file = open(self._pid_path, 'r')
             self._pid = int(pid_file.readline())
             pid_file.close()
         except: self._pid = None
