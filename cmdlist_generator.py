@@ -5,6 +5,7 @@
 # Copyright (C) 2014 Musikhin Andrey <melomansegfault@gmail.com>
 
 import os
+from subprocess import Popen, PIPE
 from pprint import pformat
 
 
@@ -12,22 +13,46 @@ from pprint import pformat
 class CmdDictGenerator(object):
     """ Command list ditionary generator  """
 
-    def __init__(self):
-        self.txt_file = open(os.path.join(os.curdir,
-                             'data/mplayer_cmdlist.txt'), 'r').readlines()
+    def __init__(self, mplayer='mplayer'):
+        self._cmdlist = [line for line in Popen(
+                      [mplayer, '-input', 'cmdlist'], stdout=PIPE).stdout][:-1]
+        self._doc_file = open(os.path.join(os.curdir, 
+                             'data/mplayer_cmdlist_docs.txt'), 'r').readlines()
+        self._cmdlist_dict = {}
 
     def _get_cmd_dict(self):
         """ Convert txt file to python dictionary """
+        # Creating the comments dictionary
+        doc_string = 'MPlayer doc:\n'
+        doc_key = ''
+        doc_dict = {}
+        for line in self._doc_file:
+            if line == '\n':
+                doc_dict[doc_key] = doc_string
+                doc_string = 'MPlayer doc: '
+                continue
+            if line[0] == ' ':
+                doc_string += line[5:]
+            else: 
+                doc_key = line.strip().split(' ')[0]
+                doc_string += line
+        # Creating the command dictionary
         cmds_dict = {}
-        for line in self.txt_file:
+        for line in self._cmdlist:
             line_dict = {}
             list_line = line.split()
             line_dict['command'] = list_line[0]
-            line_dict['comment'], line_dict['pycommand'], line_dict['types'] =\
-            self._new_cpt(line)
+            if list_line[0] not in doc_dict.keys():
+                line_dict['comment'] = self._new_cpt(line)[0]
+                line_dict['pycommand'] = self._new_cpt(line)[1]
+                line_dict['types'] = self._new_cpt(line)[2]
+            else:
+                line_dict['comment'] = '%s\n%s' % (self._new_cpt(line)[0],
+                                                   doc_dict[list_line[0]])
+                line_dict['pycommand'] = self._new_cpt(line)[1]
+                line_dict['types'] = self._new_cpt(line)[2]
             cmds_dict[list_line[0]] = line_dict
-        print cmds_dict
-        return cmds_dict
+        self._cmdlist_dict = cmds_dict
 
     def _new_cpt(self, comment):
         """ 
@@ -56,18 +81,22 @@ class CmdDictGenerator(object):
             _python_comment += string
         new_comment = 'MPlayer command: %s' % _comment
         python_comment = '%s(%s)' % (comment_list[0], _python_comment)
-        return new_comment, python_comment, types
+        return [new_comment, python_comment, types]
 
-    def run(self):
-        """ Run generation """
-        output_prop_file = open(os.path.join(os.curdir,
-                                'player_cmdlist.py'), 'w')
-        text = 'cmdlist_dict = %s'
-        output_prop_file.write(text % pformat(self._get_cmd_dict()))
-        output_prop_file.close()
+    def get_cmdlist(self):
+        self._get_cmd_dict()
+        return self._cmdlist_dict
+
+    # def run(self):
+    #     """ Run generation """
+    #     output_prop_file = open(os.path.join(os.curdir,
+    #                             'player_cmdlist.py'), 'w')
+    #     text = 'cmdlist_dict = %s'
+    #     output_prop_file.write(text % pformat(self._get_cmd_dict()))
+    #     output_prop_file.close()
 
 
 
 if __name__ == '__main__':
     DG = CmdDictGenerator()
-    DG.run()
+    print pformat(DG.get_cmdlist())

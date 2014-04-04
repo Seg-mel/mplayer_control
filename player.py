@@ -12,7 +12,8 @@ from tempfile import gettempdir
 from functools import partial
 from types import FunctionType
 from player_property import property_dict
-from player_cmdlist import cmdlist_dict
+# from player_cmdlist import cmdlist_dict
+from cmdlist_generator import CmdDictGenerator
 
 # Constants
 PLATFORM = sys.platform
@@ -27,12 +28,13 @@ PID_PATH = os.path.join(gettempdir(), 'mplayer.pid')
 COMMAND_LIST = ['-slave', '-quiet', '-idle']
 
 
+
 class Properties(object):
     '''
     MPlayer properties class.
     ~~~~~~~~~~~~~~~~~~~~~~~~
 
-    This class includes MPlayer properies.
+    This class includes MPlayer properties.
     The class is substitute two MPlayer commands (get_property, set_property)
     plus property.
     Example raw MPlayer query: get_property volume
@@ -100,7 +102,8 @@ class Properties(object):
         def _doc_creator(item):
             ## Doc creator for property
             if item['comment'] == '':
-                doc_info = item['command']
+                # doc_info = item['command']
+                doc_info = ''
             else:
                 doc_info  = item['comment']
             if item['set'] is False:
@@ -247,7 +250,8 @@ class Player(object):
             # self._send_command('quit')
             raise TypeError(get_count_args_error_string())
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, mplayer=MPLAYER_PATH, pipe=PIPE_PATH, 
+                                           stdout=STDOUT_PATH, debug=False):
 
         def _doc_creator(item):
             ## Doc creator for command
@@ -257,10 +261,11 @@ class Player(object):
             return doc
 
         ## Create new class methods from mplayer cmdlist_dict
+        cmdlist_dict = CmdDictGenerator(mplayer).get_cmdlist()
         for item in cmdlist_dict.keys():
             if item == 'get_property': continue
             if item == 'set_property': continue
-            if item == 'set_property_osd': continue
+            #if item == 'set_property_osd': continue
             doc = _doc_creator(cmdlist_dict[item])
             # Creating a dictionary that would include variables contained
             # it item and globals() (excluding locals()).
