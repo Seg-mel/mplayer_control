@@ -11,9 +11,8 @@ from psutil import Process, Popen, pid_exists
 from tempfile import gettempdir
 from functools import partial
 from types import FunctionType
-from player_property import property_dict
-# from player_cmdlist import cmdlist_dict
-from cmdlist_generator import CmdDictGenerator
+from player_properties import property_dict
+from generators import CmdDictGenerator
 
 # Constants
 PLATFORM = sys.platform
@@ -226,7 +225,6 @@ class Player(object):
                 if (basic_type == 'float') and ('int' in gotten_type):
                     pass
                 else:
-                    # self._send_command('quit')
                     raise TypeError(get_args_error_string())
 
         # For single value, because it is not a tuple

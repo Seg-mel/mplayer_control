@@ -1,7 +1,7 @@
 #!/usr/bin/env python2.7
 # -*- coding: utf-8 -*-
 
-# Windows Test module
+# Test module
 # Copyright (C) 2014 Musikhin Andrey <melomansegfault@gmail.com>
 
 import atexit
@@ -31,7 +31,8 @@ class TestPlayer(object):
         print help(player)
         print help(player.properties)
         # Setting the 'loadfile' command
-        player.loadfile("C:\music\sound.ogg")
+        player.loadfile("/home/user/music/sound.ogg") # For Unix
+        # player.loadfile("C:\music\sound.ogg") # For Windows
         for i in range(11):
             time.sleep(0.5)
             print '~'*79
@@ -51,7 +52,14 @@ class TestPlayer(object):
             # Setting properties of player
             player.properties.volume = i*10
         time.sleep(2)
-        # Kill process
+
+        # Connection to existing process (Only Unix)
+        # player.connect_to_process()
+        # print player.get_percent_pos()
+        # print player.get_time_pos()
+        # time.sleep(1)
+
+        # Killing process
         player.quit()
 
 
