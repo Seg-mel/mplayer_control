@@ -380,6 +380,10 @@ class Player(object):
             print 'START MPLAYER COMMAND IS UPDATED: %s' %\
                                                         ' '.join(self._command)
 
+    def send_raw_command(self, string):
+        """ Sending a raw command """
+        self._send_command(command=string)
+
 
 
 if __name__=='__main__':
