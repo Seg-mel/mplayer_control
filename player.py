@@ -17,7 +17,7 @@ from generators import CmdDictGenerator
 # Constants
 PLATFORM = sys.platform
 if 'win' in PLATFORM:
-    MPLAYER_PATH = '/mplayer/mplayer.exe'
+    MPLAYER_PATH = 'C:\mplayer\mplayer.exe'
     PIPE_PATH = ''
 elif 'linux' in PLATFORM:
     MPLAYER_PATH = 'mplayer'
