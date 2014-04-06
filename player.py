@@ -35,7 +35,7 @@ class Properties(object):
     This class includes MPlayer properties.
     The class is substitute two MPlayer commands (get_property, set_property)
     plus property.
-    Example raw MPlayer query: get_property volume
+    Example raw MPlayer command: get_property volume
     '''
 
     def _getter(self, item):
@@ -157,15 +157,24 @@ class Player(object):
     MPlayer control class.
     ~~~~~~~~~~~~~~~~~~~~~
 
-    Commands 'get_property', 'set_property' and 'set_property_osd',
-    which included into MPlayer cmdlist,
-    have been replaced on 'properties',
-    that is the properies class.
+    This class is includes methods with the same names, what MPlayer commands.
+    Example:
+        Player().get_percent_pos()
+        Player().loadfile('/home/user/music/sound.ogg')
+    For getting more documentation of commands you can use the command:
+        help(Player())
+    and the console command:
+        mplayer -input cmdlist
+    or read the official documentation:
+        http://www.mplayerhq.hu/DOCS/man/en/mplayer.1.html
+
+    Commands 'get_property' and 'set_property', which included into MPlayer 
+    cmdlist, have been replaced on 'properties', that is the properies class.
     Example:
         Player().properties.volume
         Player().properties.volume = 10
-    For getting more documetetion of properties you can use
-    the command 'help(Player.properies)'
+    For getting more documetetion of properties you can use the command:
+        help(Player().properies)
     '''
 
     @property
