@@ -157,7 +157,7 @@ class Player(object):
     MPlayer control class.
     ~~~~~~~~~~~~~~~~~~~~~
 
-    This class is includes methods with the same names, what MPlayer commands.
+    This class includes methods with the same names, what MPlayer commands.
     Example:
         Player().get_percent_pos()
         Player().loadfile('/home/user/music/sound.ogg')
