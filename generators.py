@@ -11,7 +11,7 @@ from pprint import pformat
 
 
 class CmdDictGenerator(object):
-    """ Command list ditionary generator  """
+    """ Command list dictionary generator  """
 
     def __init__(self, mplayer='mplayer'):
         self._cmdlist = [line for line in Popen(
@@ -57,8 +57,7 @@ class CmdDictGenerator(object):
 
     def _new_cpt(self, comment):
         """ 
-        Return new comment, python comment and type list 
-        from comment line 
+        Return python method string, mplayer command string and mplayer doc string
         """
         comment_list =  comment.split()
         _comment = ' '.join(comment_list)
@@ -92,7 +91,7 @@ class CmdDictGenerator(object):
 
 class PropDictGenerator(object):
     '''
-    Dictionary generator of MPlayer properties
+    Generates a dictionary of MPlayer properties
     '''
     def __init__(self):
         self.txt_file = open(
@@ -101,7 +100,7 @@ class PropDictGenerator(object):
 
     def _get_prop_dict(self):
         '''
-        Parse method. Return the properties dictionary
+        Take and parse method. Return the properties dictionary
         '''
         def convert_min_max(string):
             # Converting max/min values
@@ -149,7 +148,7 @@ class PropDictGenerator(object):
 
     def run(self):
         '''
-        Run method of generator
+        Run generator method
         '''
         output_prop_file = open(
                        os.path.join(os.path.dirname(os.path.abspath(__file__)),
