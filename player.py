@@ -32,21 +32,20 @@ class Properties(object):
     MPlayer properties class.
     ~~~~~~~~~~~~~~~~~~~~~~~~
 
-    This class includes MPlayer properties.
-    The class is substitute two MPlayer commands (get_property, set_property)
-    plus property.
-    Example raw MPlayer command: get_property volume
+    This class is an abstraction for all MPlayer properties. 
+    It sets and gets the corresponding properties using MPlayer commands get_property and set_property.
+    Example of a raw MPlayer command: get_property volume
     '''
 
     def _getter(self, item):
         '''
-        Getter for property.
-        Get answer from stdout file
+        Getter for the property.
+        Gets an answer from stdout file
         '''
         command_string = 'pausing_keep get_property %s' % item['command']
         self._send_command(command_string)
         answer = ''
-        # Skipping line what not is answer(and other garbage)
+        # Skipping a line that is not an answer (and other garbage)
         while len(answer.split('=')) != 2 :
             answer = self._player_answer.readline()
         if self._debug: 
@@ -54,17 +53,17 @@ class Properties(object):
         return answer.split('=')[-1][:-1]
 
     def _setter(self, args, item):
-        ''' Setter for property '''
+        ''' Setter for the property '''
 
         def type_test(arg):
             ## Type test function
             basic_type = item['type']
             gotten_type = str(type(arg))
             if basic_type not in gotten_type:
-                # Permit for setting integer arg in float arg
+                # Allow passing integer arg in place of float arg
                 if (basic_type == 'float') and ('int' in gotten_type):
                     pass
-                # Type test for flag type
+                # Test for flag type
                 elif ('int' in gotten_type) and (basic_type == 'flag'):
                     if (arg != 0) and (arg != 1):
                         error_string = 'the value must be 0 or 1'
@@ -78,7 +77,7 @@ class Properties(object):
         # Count args test
         if type(args) is tuple:
             args_length = len(args)
-            error_string = "property '%s' takes exactly 1 arguments (%d given)"
+            error_string = "property '%s' takes exactly 1 argument (%d given)"
             raise TypeError(error_string % (item['command'], args_length))
         # Type test
         type_test(args)
@@ -98,7 +97,7 @@ class Properties(object):
     def __new__(cls, *args, **kwargs):
 
         def _doc_creator(item):
-            ## Doc creator for property
+            ## Doc creator for the property
             if item['comment'] == '':
                 # doc_info = item['command']
                 doc_info = ''
@@ -121,18 +120,18 @@ class Properties(object):
                                                 max_info, set_info)
             return doc
 
-        # Create new class properties from mplayer property_dict
+        # Creating new class properties from mplayer property_dict
         for item in property_dict.keys():
             doc = _doc_creator(property_dict[item])
             if property_dict[item]['set'] is True:
-                # Create property with set capacity
+                # Creating property with set capacity
                 prop = property(fget=partial(cls._getter,
                                              item=property_dict[item]),
                                 fset=partial(cls._setter,
                                              item=property_dict[item]),
                                 doc=doc)
             elif property_dict[item]['set'] is False:
-                # Create property without set capacity
+                # Creating property without set capacity
                 prop = property(fget=partial(cls._getter,
                                              item=property_dict[item]),
                                 doc=doc)
@@ -145,7 +144,7 @@ class Properties(object):
         self._debug = debug
 
     def _send_command(self, command):
-        ''' Write command in the pipe '''
+        ''' Sends command to the pipe '''
         command += '\n'
         self._pipe.write(command)
         self._pipe.flush()
@@ -157,23 +156,23 @@ class Player(object):
     MPlayer control class.
     ~~~~~~~~~~~~~~~~~~~~~
 
-    This class includes methods with the same names, what MPlayer commands.
+    This class includes methods with the same names that MPlayer commands have.
     Example:
         Player().get_percent_pos()
         Player().loadfile('/home/user/music/sound.ogg')
-    For getting more documentation of commands you can use the command:
+    To get more detailed manual on commands you can use the command:
         help(Player())
-    and the console command:
+    or the console command:
         mplayer -input cmdlist
-    or read the official documentation:
+    or the official documentation:
         http://www.mplayerhq.hu/DOCS/man/en/mplayer.1.html
 
-    Commands 'get_property' and 'set_property', which included into MPlayer 
-    cmdlist, have been replaced on 'properties', that is the properies class.
+    Commands 'get_property' and 'set_property', included in MPlayer 
+    cmdlist, have been replaced with 'Properties' class.
     Example:
         Player().properties.volume
         Player().properties.volume = 10
-    For getting more documetetion of properties you can use the command:
+    To get more detailed manual on properties you can use the command:
         help(Player().properies)
     '''
 
@@ -181,18 +180,18 @@ class Player(object):
     def process(self):
         ''' 
         The MPlayer process.
-        For more instructions look at the 
+        For more detailed manual check out the 
         documentation of psutil.Process(pid)
         (https://code.google.com/p/psutil/wiki/Documentation#Classes)
          '''
         return self._process
 
     def _new_get_method(self):
-        ''' Get answer method from stdout file '''
+        ''' Getting answer method from stdout file '''
         command_string = 'pausing_keep %s' % item['command']
         self._send_command(command_string)
         answer = ''
-        # Skipping line what not is answer(and other garbage)
+        # Skipping a line that is not an answer(and other garbage)
         while len(answer.split('=')) != 2 :
             answer = self._player_answer.readline()
         if self._debug: 
@@ -200,13 +199,13 @@ class Player(object):
         return answer.split('=')[-1][:-1]
 
     def _new_simple_method(self):
-        ''' Write mplayer command without an answer and arguments '''
+        ''' Writing mplayer command without the answer and arguments '''
         command_string = '%s' % item['command']
         if self._debug: print 'EXECUTED SIMPLE COMMAND:', command_string
         self._send_command(command_string)
 
     def _new_args_method(self, *args):
-        ''' Write mplayer command with arguments '''
+        ''' Writing mplayer command with arguments '''
 
         def get_args_error_string():
             ## Return error string for args type error
@@ -229,7 +228,7 @@ class Player(object):
             gotten_type = str(type(arg))
             # print basic_type, gotten_type , arg
             if basic_type not in gotten_type:
-                # Permit for setting integer arg in float arg
+                # Allow passing integer arg in place of float arg
                 if (basic_type == 'float') and ('int' in gotten_type):
                     pass
                 else:
@@ -240,14 +239,14 @@ class Player(object):
             args = (args,)
         count_args = len(args)
         count_args_types = len(item['types'])
-        # Test count input args
+        # Testing count input args
         if count_args <= count_args_types:
             command_string = item['command']
-            # Append command string
+            # Appending command to the string
             for num, value in enumerate(args):
-                # Test on type
+                # Testing the type
                 type_test(num, value)
-                # Create command string
+                # Creating a command string
                 command_string += ' %s' % str(value)
             if self._debug: print 'EXECUTED ARGS COMMAND:', command_string
             # Sending the command
@@ -260,35 +259,35 @@ class Player(object):
                      stdout=STDOUT_PATH, pid=PID_PATH, debug=False):
 
         def _doc_creator(item):
-            ## Doc creator for command
+            ## Doc creator for the command
             doc_info  = item['comment']
             py_command = item['pycommand']
             doc = '%s\n%s' % (py_command, doc_info)
             return doc
 
-        ## Create new class methods from mplayer cmdlist_dict
+        ## Creating new class methods from mplayer cmdlist_dict
         cmdlist_dict = CmdDictGenerator(mplayer).get_cmdlist()
         for item in cmdlist_dict.keys():
             if item == 'get_property': continue
             if item == 'set_property': continue
             #if item == 'set_property_osd': continue
             doc = _doc_creator(cmdlist_dict[item])
-            # Creating a dictionary that would include variables contained
-            # it item and globals() (excluding locals()).
+            # Creating a dictionary that would include variables from 
+            # item and globals() (excluding locals()).
             # This is necessary for passing it to a new method.
             method_dict = {'item': cmdlist_dict[item]}
             for i in globals().keys():
                 if i in locals().keys(): continue
                 method_dict[i] = globals()[i]
-            # Creating function
+            # Creating a function
             if 'get' not in item:
                 if len(cmdlist_dict[item]['types']) != 0:
-                    # If the list of types containes types
+                    # If list of types contains some types
                     new_method = FunctionType(cls._new_args_method.func_code,
                                               method_dict,
                                               item)
                 else:
-                    # If the list of types is empty
+                    # If list of types is empty
                     new_method = FunctionType(cls._new_simple_method.func_code,
                                               method_dict,
                                               item)
@@ -299,10 +298,10 @@ class Player(object):
             # Adding doc, editing name
             new_method.__doc__ = doc
             new_method.__name__ = item
-            # Adding function to this class as method
+            # Adding function to this class as a method
             setattr(cls, item, new_method)
         # Create 'properties' property and 
-        # set the doc from Properties class
+        # making it use the doc from Properties class
         properties_class = Properties()
         def get_properties(self):
             return properties_class
@@ -322,13 +321,13 @@ class Player(object):
         self._process = None
 
     def _send_command(self, command):
-        ''' Write command in the pipe '''
+        ''' Sending command to the pipe '''
         command += '\n'
         self._pipe.write(command)
         self._pipe.flush()
 
     def create_new_process(self):
-        ''' Create the new process '''
+        ''' Creating a new process '''
         if 'win' in PLATFORM:
             self._stdout = open(self._stdout_path, 'w+b')
             self._process = Popen(args=self._command,
@@ -348,18 +347,17 @@ class Player(object):
                                   stdout=self._stdout)
         self._player_answer = open(self._stdout_path, 'r')
         self._pid = self._process.pid
-        # Write the pid to file
+        # Writing pid to file
         pid_file = open(self._pid_path, 'w')
         pid_file.write(str(self._pid))
         pid_file.close()
-        # Pipe and stdout passing to properties  class
+        # Passing pipe and stdout to properties class
         self.properties.__init__(self._pipe, self._player_answer, self._debug)
 
     def connect_to_process(self):
         ''' 
         Connect to the existing process of mplayer.
-        Use for get process without creating tne new process.
-        For example, if your GUY has crashed, 
+        For example, if your GUI has crashed, 
         but the mplayer continues to play.
         (Only Unix)
         '''
@@ -381,7 +379,7 @@ class Player(object):
             self._process = None
 
     def add_command_option(self, option, value=None):
-        ''' Adding an option to the start mplayer command list '''
+        ''' Add an option to the mplayer start command list '''
         self._command.append(option)
         if value is not None:
             self._command.append(value)
