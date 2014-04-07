@@ -1,7 +1,7 @@
 #!/usr/bin/env python2.7
 # -*- coding: utf-8 -*-
 
-# Test module
+# Example module
 # Copyright (C) 2014 Musikhin Andrey <melomansegfault@gmail.com>
 
 import atexit
@@ -10,16 +10,14 @@ from player import Player, MPLAYER_PATH, STDOUT_PATH, PIPE_PATH, PID_PATH
 
 
 
-class TestPlayer(object):
-    """Test Player class"""
+class ExamplePlayer(object):
+    """Example Player class"""
 
     def __init__(self, *arg):
-        super(TestPlayer, self).__init__()
+        super(ExamplePlayer, self).__init__()
         # Initializing the player
         player = Player(mplayer=MPLAYER_PATH, pipe=PIPE_PATH, 
                         stdout=STDOUT_PATH, pid=PID_PATH, debug=False)
-        # # Adding an option to the mplayer start command
-        # player.add_command_option(option='-nolirc')
         # Adding the '-nolirc' option to the mplayer start command
         player.add_command_option(option='-nolirc')
         # Adding the 'equalizer' audio filter to the mplayer start command
@@ -74,4 +72,4 @@ class TestPlayer(object):
 
 
 if __name__ == '__main__':
-    test_player = TestPlayer()
+    example_player = ExamplePlayer()

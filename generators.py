@@ -57,7 +57,7 @@ class CmdDictGenerator(object):
 
     def _new_cpt(self, comment):
         """ 
-        Return python method string, mplayer command string and mplayer doc string
+        Return mplayer command string, python method string and types list
         """
         comment_list =  comment.split()
         _comment = ' '.join(comment_list)
@@ -79,9 +79,9 @@ class CmdDictGenerator(object):
             elif num != 0: string  = ', <%s>' % string
             elif num == 0: string = '<%s>' % string 
             _python_comment += string
-        new_comment = 'MPlayer command: %s' % _comment
+        command_comment = 'MPlayer command: %s' % _comment
         python_comment = '%s(%s)' % (comment_list[0], _python_comment)
-        return [new_comment, python_comment, types]
+        return [command_comment, python_comment, types]
 
     def get_cmdlist(self):
         self._get_cmd_dict()

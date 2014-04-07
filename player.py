@@ -33,7 +33,8 @@ class Properties(object):
     ~~~~~~~~~~~~~~~~~~~~~~~~
 
     This class is an abstraction for all MPlayer properties. 
-    It sets and gets the corresponding properties using MPlayer commands get_property and set_property.
+    It sets and gets the corresponding properties using MPlayer commands 
+    get_property and set_property.
     Example of a raw MPlayer command: get_property volume
     '''
 
@@ -168,7 +169,7 @@ class Player(object):
         http://www.mplayerhq.hu/DOCS/man/en/mplayer.1.html
 
     Commands 'get_property' and 'set_property', included in MPlayer 
-    cmdlist, have been replaced with 'Properties' class.
+    cmdlist, are replaced with 'Properties' class.
     Example:
         Player().properties.volume
         Player().properties.volume = 10
