@@ -29,5 +29,10 @@ EXECUTED GET PROPERTY: volume ANS_volume=100.000000
 EXECUTED SET PROPERTY: volume 90
 EXECUTED ARGS COMMAND: quit
 ```
-For more information look at the example file 
-[test.py](https://github.com/Seg-mel/mplayer_control/blob/master/example.py).
+For more information look at example file 
+[example.py](https://github.com/Seg-mel/mplayer_control/blob/master/example.py) 
+and [API Reference](https://github.com/Seg-mel/mplayer_control/wiki/API-Reference). 
+MPlayer Control is licensed under the terms of the GPL. Please refer to the 
+[LICENSE](https://github.com/Seg-mel/mplayer_control/blob/master/LICENSE) file. 
+Authors of the project are listed in the 
+[AUTHORS](https://github.com/Seg-mel/mplayer_control/blob/master/AUTHORS) file.
