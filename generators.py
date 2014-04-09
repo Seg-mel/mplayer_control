@@ -33,7 +33,7 @@ class CmdDictGenerator(object):
                 doc_string = 'MPlayer doc: '
                 continue
             if line[0] == ' ':
-                doc_string += line[5:]
+                doc_string += line[4:]
             else: 
                 doc_key = line.strip().split(' ')[0]
                 doc_string += line

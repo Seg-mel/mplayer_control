@@ -1,7 +1,7 @@
-MPlayer Control
-===============
+MPlayer Control v1
+==================
 
-###This is a cross-platform Python library for [MPlayer](http://www.mplayerhq.hu/) control.
+###This is a cross-platform Python 2.7 library for [MPlayer](http://www.mplayerhq.hu/) control.
 
 The library was tested in Ubuntu Linux and Windows.
 Connecting to already running mplayer process is currently not supported on Windows.
